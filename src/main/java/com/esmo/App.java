@@ -236,12 +236,12 @@ public class App extends Application {
 
     private void sortMoveSelect() {
         fileListView.getSelectionModel().selectLast();
-        FXCollections.sort(fileListView.getItems());
+        FXCollections.sort(fileListView.getItems(), (a, b) -> a.toLowerCase().compareTo(b.toLowerCase()));
         fileListView.scrollTo(fileListView.getSelectionModel().getSelectedItem());
     }
 
     private void sortMoveSelect(String fileName) {
-        FXCollections.sort(fileListView.getItems());
+        FXCollections.sort(fileListView.getItems(), (a, b) -> a.toLowerCase().compareTo(b.toLowerCase()));
         fileListView.getSelectionModel().select(fileName);
         fileListView.scrollTo(fileName);
     }
