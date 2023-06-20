@@ -17,11 +17,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -34,6 +36,8 @@ public class App extends Application {
     private ListView<String> fileListView = new ListView<>();
 
     private TextField fileNameField;
+    private TextField searchField;
+    private Button searchButton;
 
     public static void main(String[] args) {
         launch(args);
@@ -57,7 +61,6 @@ public class App extends Application {
         }
 
         fileListView.setItems(fileList);
-
         fileListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 String filePath = FOLDER_PATH + File.separator + newValue;
@@ -78,6 +81,15 @@ public class App extends Application {
             }
         });
 
+        searchField = new TextField();
+        searchField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                searchFiles();
+            }
+        });
+        searchButton = new Button("Search");
+        searchButton.setOnAction(e -> searchFiles());
+
         Button newFileButton = new Button("New");
         newFileButton.setOnAction(e -> createNewFile());
 
@@ -91,9 +103,20 @@ public class App extends Application {
         changeButton.setOnAction(e -> changeFileName());
 
         HBox fileNameBox = new HBox(fileNameField, changeButton);
-        HBox buttonBox = new HBox(newFileButton, saveButton, deleteButton);
-        HBox hbox = new HBox(textArea, fileListView);
-        VBox vbox = new VBox(fileNameBox, hbox, buttonBox);
+        HBox searchBox = new HBox(searchField, searchButton);
+        HBox buttonBar = new HBox(newFileButton, saveButton, deleteButton);
+
+        VBox textPane = new VBox(fileNameBox, textArea);
+        VBox.setVgrow(textArea, Priority.ALWAYS);
+
+        VBox files = new VBox(searchBox, fileListView);
+        VBox.setVgrow(fileListView, Priority.ALWAYS);
+
+        SplitPane splitPane = new SplitPane(textPane, files);
+        splitPane.setDividerPositions(0.7);
+
+        VBox vbox = new VBox(splitPane, buttonBar);
+        VBox.setVgrow(splitPane, Priority.ALWAYS);
 
         Scene scene = new Scene(vbox, 600, 300);
         primaryStage.setScene(scene);
@@ -188,6 +211,18 @@ public class App extends Application {
                 }
             }
         }
+    }
+
+    private void searchFiles() {
+        String searchPhrase = searchField.getText().trim();
+
+        if (searchPhrase.isEmpty()) {
+            fileListView.setItems(fileList);
+            return;
+        }
+        
+        ObservableList<String> filteredList = fileList.filtered(fileName -> fileName.contains(searchPhrase));
+        fileListView.setItems(filteredList);
     }
 
     private void sortMoveSelect() {
