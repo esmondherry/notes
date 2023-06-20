@@ -21,6 +21,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ToolBar;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -90,21 +92,11 @@ public class App extends Application {
         searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchFiles());
 
-        Button newFileButton = new Button("New");
-        newFileButton.setOnAction(e -> createNewFile());
-
-        Button deleteButton = new Button("Delete");
-        deleteButton.setOnAction(e -> deleteFile());
-
-        Button saveButton = new Button("Save");
-        saveButton.setOnAction(e -> saveFile());
-
         Button changeButton = new Button("Change");
         changeButton.setOnAction(e -> changeFileName());
 
         HBox fileNameBox = new HBox(fileNameField, changeButton);
         HBox searchBox = new HBox(searchField, searchButton);
-        HBox buttonBar = new HBox(newFileButton, saveButton, deleteButton);
 
         VBox textPane = new VBox(fileNameBox, textArea);
         VBox.setVgrow(textArea, Priority.ALWAYS);
@@ -115,7 +107,7 @@ public class App extends Application {
         SplitPane splitPane = new SplitPane(textPane, files);
         splitPane.setDividerPositions(0.7);
 
-        VBox vbox = new VBox(splitPane, buttonBar);
+        VBox vbox = new VBox(splitPane, createToolbar());
         VBox.setVgrow(splitPane, Priority.ALWAYS);
 
         Scene scene = new Scene(vbox, 600, 300);
@@ -145,7 +137,7 @@ public class App extends Application {
                 e.printStackTrace();
             }
         } else {
-            createNewFile();
+            // createNewFile();
 
         }
     }
@@ -170,28 +162,45 @@ public class App extends Application {
         });
     }
 
-    private void createNewFile() {
+    private void createFileAlert() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create New File");
         dialog.setHeaderText(null);
         dialog.setContentText("Enter file name:");
 
         String fileName = dialog.showAndWait().orElse("").trim();
-        if (!fileName.isEmpty()) {
-            String filePath = FOLDER_PATH + File.separator + addTXT(fileName);
-            File newFile = new File(filePath);
-            try {
-                boolean created = newFile.createNewFile();
-                if (created) {
-                    fileList.add(addTXT(fileName));
-                    textArea.clear();
-                    sortMoveSelect(fileName);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (fileName.isEmpty()) {
+            return;
         }
 
+        createNewFile(fileName);
+    }
+
+    private void createNewFile(String fileName) {
+
+        fileName = addTXT(fileName);
+        String filePath = FOLDER_PATH + File.separator + fileName;
+        File newFile = new File(filePath);
+
+        if (newFile.exists()) {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("File Already Exists");
+            alert.setHeaderText(null);
+            alert.setContentText("\"" + fileName + "\" already exists. Please choose a different name.");
+            alert.showAndWait();
+            return;
+        }
+
+        try {
+            boolean created = newFile.createNewFile();
+            if (created) {
+                fileList.add(addTXT(fileName));
+                textArea.clear();
+                sortMoveSelect(fileName);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void changeFileName() {
@@ -220,7 +229,7 @@ public class App extends Application {
             fileListView.setItems(fileList);
             return;
         }
-        
+
         ObservableList<String> filteredList = fileList.filtered(fileName -> fileName.contains(searchPhrase));
         fileListView.setItems(filteredList);
     }
@@ -243,4 +252,22 @@ public class App extends Application {
         }
         return name + ".txt";
     }
+
+    private ToolBar createToolbar() {
+        ToolBar toolbar = new ToolBar();
+
+        Button newButton = new Button("New");
+        newButton.setOnAction(e -> createFileAlert());
+
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> saveFile());
+
+        Button deleteButton = new Button("Delete");
+        deleteButton.setOnAction(e -> deleteFile());
+
+        toolbar.getItems().addAll(newButton, saveButton, deleteButton);
+
+        return toolbar;
+    }
+
 }
