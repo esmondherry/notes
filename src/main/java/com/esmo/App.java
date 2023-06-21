@@ -296,7 +296,7 @@ public class App extends Application {
     }
 
     private void applySettings() {
-        String newFolderPath = folderPathField.getText();
+        String newFolderPath = folderPathField.getText().trim();
 
         if (!newFolderPath.isEmpty()) {
             folderPath = newFolderPath;
