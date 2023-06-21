@@ -12,26 +12,29 @@ import java.nio.file.Path;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class App extends Application {
 
-    private static final String FOLDER_PATH = "/path/to/predefined/folder";
+    private static String folderPath = "/path/to/predefined/folder";
     private ObservableList<String> fileList;
     private TextArea textArea;
 
@@ -40,6 +43,9 @@ public class App extends Application {
     private TextField fileNameField;
     private TextField searchField;
     private Button searchButton;
+
+    private TextField folderPathField;
+    private Button folderPathButton;
 
     public static void main(String[] args) {
         launch(args);
@@ -50,22 +56,12 @@ public class App extends Application {
         textArea = new TextArea();
         fileList = FXCollections.observableArrayList();
 
-        File folder = new File(FOLDER_PATH);
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile() && file.getName().endsWith(".txt")) {
-                        fileList.add(file.getName());
-                    }
-                }
-            }
-        }
+        updateFileList();
 
         fileListView.setItems(fileList);
         fileListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                String filePath = FOLDER_PATH + File.separator + newValue;
+                String filePath = folderPath + File.separator + newValue;
                 try {
                     String fileContent = readFile(filePath);
                     textArea.setText(fileContent);
@@ -130,7 +126,7 @@ public class App extends Application {
     private void saveFile() {
         String selectedFile = fileListView.getSelectionModel().getSelectedItem();
         if (selectedFile != null) {
-            String filePath = FOLDER_PATH + File.separator + selectedFile;
+            String filePath = folderPath + File.separator + selectedFile;
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                 writer.write(textArea.getText());
             } catch (IOException e) {
@@ -144,7 +140,7 @@ public class App extends Application {
 
     private void deleteFile() {
         String selectedFile = fileListView.getSelectionModel().getSelectedItem();
-        String filePath = FOLDER_PATH + File.separator + selectedFile;
+        String filePath = folderPath + File.separator + selectedFile;
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm Delete");
         confirmation.setHeaderText(null);
@@ -179,7 +175,7 @@ public class App extends Application {
     private void createNewFile(String fileName) {
 
         fileName = addTXT(fileName);
-        String filePath = FOLDER_PATH + File.separator + fileName;
+        String filePath = folderPath + File.separator + fileName;
         File newFile = new File(filePath);
 
         if (newFile.exists()) {
@@ -208,8 +204,8 @@ public class App extends Application {
         if (selectedFile != null) {
             String newFileName = addTXT(fileNameField.getText());
             if (!newFileName.isEmpty()) {
-                String oldFilePath = FOLDER_PATH + File.separator + selectedFile;
-                String newFilePath = FOLDER_PATH + File.separator + newFileName;
+                String oldFilePath = folderPath + File.separator + selectedFile;
+                String newFilePath = folderPath + File.separator + newFileName;
                 File oldFile = new File(oldFilePath);
                 File newFile = new File(newFilePath);
                 if (oldFile.renameTo(newFile)) {
@@ -232,6 +228,81 @@ public class App extends Application {
 
         ObservableList<String> filteredList = fileList.filtered(fileName -> fileName.contains(searchPhrase));
         fileListView.setItems(filteredList);
+    }
+
+    private void updateFileList() {
+        fileList.clear();
+        File folder = new File(folderPath);
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile() && file.getName().endsWith(".txt")) {
+                        fileList.add(file.getName());
+                    }
+                }
+            }
+        }
+    }
+
+    private void openSettings() {
+        Stage settingsStage = new Stage();
+        settingsStage.setTitle("Settings");
+
+        folderPathField = new TextField(folderPath);
+        folderPathField.setPrefWidth(200);
+
+        folderPathButton = new Button("...");
+        folderPathButton.setOnAction(e -> showDirectoryChooser());
+
+        Button okButton = new Button("OK");
+        okButton.setOnAction(e -> {
+            applySettings();
+            settingsStage.close();
+        });
+
+        Button applyButton = new Button("Apply");
+        applyButton.setOnAction(e -> {
+            applySettings();
+        });
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setOnAction(e -> settingsStage.close());
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+        vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(folderPathField, folderPathButton));
+
+        HBox buttonBox = new HBox(10);
+        buttonBox.getChildren().addAll(okButton, applyButton, cancelButton);
+        vbox.getChildren().add(buttonBox);
+
+        Scene scene = new Scene(vbox);
+        settingsStage.setScene(scene);
+        settingsStage.show();
+    }
+
+    private void showDirectoryChooser() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Folder");
+
+        Stage sesttingStage = (Stage) folderPathField.getScene().getWindow();
+        File selectedDirectory = directoryChooser.showDialog(sesttingStage);
+
+        if (selectedDirectory != null) {
+            String folderPath = selectedDirectory.getAbsolutePath();
+            folderPathField.setText(folderPath);
+        }
+    }
+
+    private void applySettings() {
+        String newFolderPath = folderPathField.getText();
+
+        if (!newFolderPath.isEmpty()) {
+            folderPath = newFolderPath;
+            updateFileList();
+        }
+
     }
 
     private void sortMoveSelect() {
@@ -265,7 +336,10 @@ public class App extends Application {
         Button deleteButton = new Button("Delete");
         deleteButton.setOnAction(e -> deleteFile());
 
-        toolbar.getItems().addAll(newButton, saveButton, deleteButton);
+        Button settingsButton = new Button("Settings");
+        settingsButton.setOnAction(e -> openSettings());
+
+        toolbar.getItems().addAll(newButton, saveButton, deleteButton, settingsButton);
 
         return toolbar;
     }
