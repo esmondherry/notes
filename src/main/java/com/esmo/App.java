@@ -318,7 +318,7 @@ public class App extends Application {
     }
 
     private String addTXT(String name) {
-        if (name.endsWith(".txt")) {
+        if (name.toLowerCase().endsWith(".txt")) {
             return name;
         }
         return name + ".txt";
