@@ -3,11 +3,13 @@ package com.esmo;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Properties;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -34,7 +36,8 @@ import javafx.stage.Stage;
 
 public class App extends Application {
 
-    private static String folderPath = "/path/to/predefined/folder";
+    final private static String CONFIG_PATH = "config.properties";
+    private static String folderPath = "";
     private ObservableList<String> fileList;
     private TextArea textArea;
 
@@ -45,7 +48,7 @@ public class App extends Application {
     private Button searchButton;
 
     private TextField folderPathField;
-    private Button folderPathButton;
+    private Properties properties = new Properties();
 
     public static void main(String[] args) {
         launch(args);
@@ -53,10 +56,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+
         textArea = new TextArea();
         fileList = FXCollections.observableArrayList();
-
-        updateFileList();
 
         fileListView.setItems(fileList);
         fileListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -87,13 +89,13 @@ public class App extends Application {
         });
         searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchFiles());
-
+        
         Button changeButton = new Button("Change");
         changeButton.setOnAction(e -> changeFileName());
-
+        
         HBox fileNameBox = new HBox(fileNameField, changeButton);
         HBox searchBox = new HBox(searchField, searchButton);
-
+        
         VBox textPane = new VBox(fileNameBox, textArea);
         VBox.setVgrow(textArea, Priority.ALWAYS);
 
@@ -105,11 +107,68 @@ public class App extends Application {
 
         VBox vbox = new VBox(splitPane, createToolbar());
         VBox.setVgrow(splitPane, Priority.ALWAYS);
-
+        
         Scene scene = new Scene(vbox, 600, 300);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Some Things");
         primaryStage.show();
+
+        loadProperties();
+        folderPath = properties.getProperty("folderPath");
+        updateFileList();
+    }
+
+    private void loadProperties() {
+        try (FileReader fileReader = new FileReader(CONFIG_PATH)) {
+            properties.load(fileReader);
+        } catch (FileNotFoundException e) {
+            createPropertiesFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createPropertiesFile() {
+        try (FileWriter fileWriter = new FileWriter(CONFIG_PATH)) {
+            properties.setProperty("folderPath", initFolderPath());
+
+            properties.store(fileWriter, "Config");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String initFolderPath() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Folder Not Found");
+
+        TextField textField = new TextField();
+        textField.setPrefWidth(200);
+
+        Button button = new Button("...");
+        button.setOnAction(e -> textField.setText(showDirectoryChooser()));
+
+        VBox vbox = new VBox(10);
+        vbox.setPadding(new Insets(10));
+        vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(textField, button));
+
+        alert.setHeaderText("Enter a Folder to Open:");
+        alert.getDialogPane().setContent(vbox);
+
+        alert.showAndWait();
+
+        String value = textField.getText();
+        System.out.println("Entered value: " + value);
+        return value;
+    }
+
+    private void saveProperties() {
+        try {
+            FileWriter fileWriter = new FileWriter(CONFIG_PATH);
+            properties.store(fileWriter, "Config");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String readFile(String filePath) throws IOException {
@@ -252,8 +311,8 @@ public class App extends Application {
         folderPathField = new TextField(folderPath);
         folderPathField.setPrefWidth(200);
 
-        folderPathButton = new Button("...");
-        folderPathButton.setOnAction(e -> showDirectoryChooser());
+        Button folderPathButton = new Button("...");
+        folderPathButton.setOnAction(e -> folderPathField.setText(showDirectoryChooser()));
 
         Button okButton = new Button("OK");
         okButton.setOnAction(e -> {
@@ -282,17 +341,18 @@ public class App extends Application {
         settingsStage.show();
     }
 
-    private void showDirectoryChooser() {
+    private String showDirectoryChooser() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder");
 
-        Stage sesttingStage = (Stage) folderPathField.getScene().getWindow();
+        Stage sesttingStage = (Stage) textArea.getScene().getWindow();
         File selectedDirectory = directoryChooser.showDialog(sesttingStage);
 
         if (selectedDirectory != null) {
             String folderPath = selectedDirectory.getAbsolutePath();
-            folderPathField.setText(folderPath);
+            return folderPath;
         }
+        return null;
     }
 
     private void applySettings() {
@@ -300,8 +360,11 @@ public class App extends Application {
 
         if (!newFolderPath.isEmpty()) {
             folderPath = newFolderPath;
+            properties.setProperty("folderPath", newFolderPath);
             updateFileList();
         }
+
+        saveProperties();
 
     }
 
