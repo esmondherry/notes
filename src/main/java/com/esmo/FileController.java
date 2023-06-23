@@ -33,10 +33,6 @@ public class FileController {
 
     public void createFile(String filePath) throws IOException {
         File file = new File(filePath);
-        int num = 1;
-        while (file.exists()) {
-            file = new File(filePath + " (" + num++ + ")");
-        }
         file.createNewFile();
     }
 
