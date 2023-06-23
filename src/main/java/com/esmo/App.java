@@ -228,11 +228,7 @@ public class App extends Application {
         File newFile = new File(filePath);
 
         if (newFile.exists()) {
-            Alert alert = new Alert(AlertType.ERROR);
-            alert.setTitle("File Already Exists");
-            alert.setHeaderText(null);
-            alert.setContentText("\"" + fileName + "\" already exists. Please choose a different name.");
-            alert.showAndWait();
+            fileAlreadyExistsAlert(fileName).showAndWait();
             return;
         }
 
@@ -258,9 +254,19 @@ public class App extends Application {
                     fileList.add(newFileName);
                     fileNameField.setText(newFileName);
                     sortMoveSelect();
+                }else {
+                    fileAlreadyExistsAlert(newFileName).showAndWait();
                 }
             }
         }
+    }
+
+    private Alert fileAlreadyExistsAlert(String fileName) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("File Already Exists");
+        alert.setHeaderText(null);
+        alert.setContentText("\"" + fileName + "\" already exists. Please choose a different name.");
+       return alert;
     }
 
     private void searchFiles() {
