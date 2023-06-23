@@ -50,13 +50,14 @@ public class App extends Application {
     private TextField folderPathField;
     private Properties properties = new Properties();
 
+    private FileController fileController = new FileController();
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) {
-
         textArea = new TextArea();
         fileList = FXCollections.observableArrayList();
 
@@ -65,7 +66,7 @@ public class App extends Application {
             if (newValue != null) {
                 String filePath = folderPath + File.separator + newValue;
                 try {
-                    String fileContent = readFile(filePath);
+                    String fileContent = fileController.readFile(filePath);
                     textArea.setText(fileContent);
                     fileNameField.setText(newValue);
                 } catch (IOException e) {
@@ -89,13 +90,13 @@ public class App extends Application {
         });
         searchButton = new Button("Search");
         searchButton.setOnAction(e -> searchFiles());
-        
+
         Button changeButton = new Button("Change");
         changeButton.setOnAction(e -> changeFileName());
-        
+
         HBox fileNameBox = new HBox(fileNameField, changeButton);
         HBox searchBox = new HBox(searchField, searchButton);
-        
+
         VBox textPane = new VBox(fileNameBox, textArea);
         VBox.setVgrow(textArea, Priority.ALWAYS);
 
@@ -107,7 +108,7 @@ public class App extends Application {
 
         VBox vbox = new VBox(splitPane, createToolbar());
         VBox.setVgrow(splitPane, Priority.ALWAYS);
-        
+
         Scene scene = new Scene(vbox, 600, 300);
         primaryStage.setScene(scene);
         primaryStage.setTitle("Some Things");
@@ -171,23 +172,12 @@ public class App extends Application {
         }
     }
 
-    private String readFile(String filePath) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append(System.lineSeparator());
-            }
-        }
-        return content.toString();
-    }
-
     private void saveFile() {
         String selectedFile = fileListView.getSelectionModel().getSelectedItem();
         if (selectedFile != null) {
             String filePath = folderPath + File.separator + selectedFile;
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                writer.write(textArea.getText());
+            try {
+                fileController.saveFile(filePath, textArea.getText());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -207,7 +197,7 @@ public class App extends Application {
         confirmation.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    Files.delete(Path.of(filePath));
+                    fileController.deleteFile(filePath);
                     fileList.remove(selectedFile);
                     textArea.clear();
                 } catch (IOException e) {
@@ -247,12 +237,11 @@ public class App extends Application {
         }
 
         try {
-            boolean created = newFile.createNewFile();
-            if (created) {
-                fileList.add(addTXT(fileName));
-                textArea.clear();
-                sortMoveSelect(fileName);
-            }
+            fileController.createFile(filePath);
+            fileList.add(addTXT(fileName));
+            textArea.clear();
+            sortMoveSelect(fileName);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -264,10 +253,7 @@ public class App extends Application {
             String newFileName = addTXT(fileNameField.getText());
             if (!newFileName.isEmpty()) {
                 String oldFilePath = folderPath + File.separator + selectedFile;
-                String newFilePath = folderPath + File.separator + newFileName;
-                File oldFile = new File(oldFilePath);
-                File newFile = new File(newFilePath);
-                if (oldFile.renameTo(newFile)) {
+                if (fileController.changeFileName(oldFilePath, newFileName)) {
                     fileList.remove(selectedFile);
                     fileList.add(newFileName);
                     fileNameField.setText(newFileName);
