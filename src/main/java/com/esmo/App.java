@@ -49,9 +49,6 @@ public class App extends Application {
 
     private TextField folderPathField;
     private Properties properties = new Properties();
-
-    private FileController fileController = new FileController();
-
     public static void main(String[] args) {
         launch(args);
     }
@@ -66,7 +63,7 @@ public class App extends Application {
             if (newValue != null) {
                 String filePath = folderPath + File.separator + newValue;
                 try {
-                    String fileContent = fileController.readFile(filePath);
+                    String fileContent = FileController.readFile(filePath);
                     textArea.setText(fileContent);
                     fileNameField.setText(newValue);
                 } catch (IOException e) {
@@ -177,7 +174,7 @@ public class App extends Application {
         if (selectedFile != null) {
             String filePath = folderPath + File.separator + selectedFile;
             try {
-                fileController.saveFile(filePath, textArea.getText());
+                FileController.saveFile(filePath, textArea.getText());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -197,7 +194,7 @@ public class App extends Application {
         confirmation.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    fileController.deleteFile(filePath);
+                    FileController.deleteFile(filePath);
                     fileList.remove(selectedFile);
                     textArea.clear();
                 } catch (IOException e) {
@@ -233,7 +230,7 @@ public class App extends Application {
         }
 
         try {
-            fileController.createFile(filePath);
+            FileController.createFile(filePath);
             fileList.add(addTXT(fileName));
             textArea.clear();
             sortMoveSelect(fileName);
@@ -249,7 +246,7 @@ public class App extends Application {
             String newFileName = addTXT(fileNameField.getText());
             if (!newFileName.isEmpty()) {
                 String oldFilePath = folderPath + File.separator + selectedFile;
-                if (fileController.changeFileName(oldFilePath, newFileName)) {
+                if (FileController.changeFileName(oldFilePath, newFileName)) {
                     fileList.remove(selectedFile);
                     fileList.add(newFileName);
                     fileNameField.setText(newFileName);

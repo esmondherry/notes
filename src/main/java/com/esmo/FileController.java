@@ -10,7 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FileController {
-    public String readFile(String filePath) throws IOException {
+    public static String readFile(String filePath) throws IOException {
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -21,22 +21,22 @@ public class FileController {
         return content.toString();
     }
 
-    public void saveFile(String filePath, String data) throws IOException {
+    public static void saveFile(String filePath, String data) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write(data);
         }
     }
 
-    public void deleteFile(String filePath) throws IOException {
+    public static void deleteFile(String filePath) throws IOException {
         Files.delete(Path.of(filePath));
     }
 
-    public void createFile(String filePath) throws IOException {
+    public static void createFile(String filePath) throws IOException {
         File file = new File(filePath);
         file.createNewFile();
     }
 
-    public boolean changeFileName(String filePath, String newName) {
+    public static boolean changeFileName(String filePath, String newName) {
         File file = new File(filePath);
         File newFile = new File(file.getParent(), newName);
         return file.renameTo(newFile);
