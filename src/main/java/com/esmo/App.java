@@ -225,7 +225,7 @@ public class App extends Application {
         return confirmation.showAndWait();
     }
 
-    private void createFileAlert() {
+    private String createFileAlert() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create New File");
         dialog.setHeaderText(null);
@@ -233,15 +233,20 @@ public class App extends Application {
 
         String fileName = dialog.showAndWait().orElse("").trim();
         if (fileName.isEmpty()) {
-            return;
+            return null;
         }
 
-        createNewFile(fileName);
+        return fileName;
     }
 
-    private void createNewFile(String fileName) {
+    private void createNewFile() {
 
+        String fileName = createFileAlert();
+        if (fileName == null) {
+            return;
+        }
         fileName = addTXT(fileName);
+        
         String filePath = folderPath + File.separator + fileName;
         File newFile = new File(filePath);
 
@@ -364,7 +369,7 @@ public class App extends Application {
         ToolBar toolbar = new ToolBar();
 
         Button newButton = new Button("New");
-        newButton.setOnAction(e -> createFileAlert());
+        newButton.setOnAction(e -> createNewFile());
 
         Button saveButton = new Button("Save");
         saveButton.setOnAction(e -> saveFile());
