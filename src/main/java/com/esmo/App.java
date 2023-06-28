@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 
 import javafx.application.Application;
@@ -203,11 +204,7 @@ public class App extends Application {
     private void deleteFile() {
         String selectedFile = fl.getSelectedFile();
         String filePath = folderPath + File.separator + selectedFile;
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Confirm Delete");
-        confirmation.setHeaderText(null);
-        confirmation.setContentText("Are you sure you want to delete the selected file?\n\t" + selectedFile);
-        confirmation.showAndWait().ifPresent(response -> {
+        confirmDelete(selectedFile).ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
                     FileController.deleteFile(filePath);
@@ -218,6 +215,14 @@ public class App extends Application {
                 }
             }
         });
+    }
+
+    private Optional<ButtonType> confirmDelete(String selectedFile) {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Confirm Delete");
+        confirmation.setHeaderText(null);
+        confirmation.setContentText("Are you sure you want to delete the selected file?\n\t" + selectedFile);
+        return confirmation.showAndWait();
     }
 
     private void createFileAlert() {
