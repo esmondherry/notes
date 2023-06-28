@@ -225,13 +225,13 @@ public class App extends Application {
         return confirmation.showAndWait();
     }
 
-    private String createFileAlert() {
+    private String askNewFileName() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Create New File");
         dialog.setHeaderText(null);
         dialog.setContentText("Enter file name:");
 
-        String fileName = dialog.showAndWait().orElse("").trim();
+        String fileName = dialog.showAndWait().orElse("").strip();
         if (fileName.isEmpty()) {
             return null;
         }
@@ -241,7 +241,7 @@ public class App extends Application {
 
     private void createNewFile() {
 
-        String fileName = createFileAlert();
+        String fileName = askNewFileName();
         if (fileName == null) {
             return;
         }
