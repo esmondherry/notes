@@ -38,6 +38,10 @@ public class FileListController {
 
     }
 
+    /**
+     * Updates the listView to only contain values that have the search phrase within
+     * @param searchPhrase the phrase to search for
+     */
     public void searchFiles(String searchPhrase) {
         searchPhrase = searchPhrase.strip();
 
