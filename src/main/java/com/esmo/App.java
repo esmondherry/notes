@@ -32,7 +32,6 @@ import javafx.stage.Stage;
 public class App extends Application {
     final private static String CONFIG_PATH = "config.properties";
     protected static String folderPath = "";
-    private ObservableList<String> fileList = FXCollections.observableArrayList();
 
     private TextArea textArea;
 
@@ -52,7 +51,6 @@ public class App extends Application {
         loadProperties();
         folderPath = properties.getProperty("folderPath");
         updateFileList();
-        fl = new FileListController(fileList);
 
         SplitPane splitPane = new SplitPane(buildTextPane(), buildFilesPane());
         splitPane.setDividerPositions(0.7);
@@ -85,6 +83,9 @@ public class App extends Application {
         HBox fileNameBox = new HBox(fileNameField, changeButton);
         // could be split here
         textArea = new TextArea();
+        fl.getTextContentProperty().addListener((observable, oldValue, newValue) -> {
+            textArea.setText(newValue);
+        });
         VBox.setVgrow(textArea, Priority.ALWAYS);
 
         return new VBox(fileNameBox, textArea);
@@ -121,9 +122,6 @@ public class App extends Application {
         searchButton.setOnAction(e -> fl.searchFiles(searchField.getText()));
 
         HBox searchBox = new HBox(searchField, searchButton);
-        fl.getTextContentProperty().addListener((observable, oldValue, newValue) -> {
-            textArea.setText(newValue);
-        });
 
         return new VBox(searchBox, fl.getListView());
     }
@@ -189,12 +187,17 @@ public class App extends Application {
             try {
                 FileController.saveFile(filePath, textArea.getText());
             } catch (IOException e) {
-                e.printStackTrace();
+                showErrorAlert("File \"" + selectedFile + "\"could not be saved");
             }
-        } else {
-            // createNewFile();
-
         }
+    }
+
+    private void showErrorAlert(String string) {
+        Alert alert = new Alert(AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("An Unexpected Error Has Occured");
+        alert.setContentText(string);
+        alert.showAndWait();
     }
 
     private void deleteFile() {
@@ -211,7 +214,7 @@ public class App extends Application {
                     fl.removeFile(selectedFile);
                     textArea.clear();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }
             }
         });
@@ -262,7 +265,7 @@ public class App extends Application {
     }
 
     private void updateFileList() {
-        fileList.clear();
+        ObservableList<String> fileList = FXCollections.observableArrayList();
         File folder = new File(folderPath);
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
@@ -274,6 +277,7 @@ public class App extends Application {
                 }
             }
         }
+        fl = new FileListController(fileList);
     }
 
     private void openSettings() {
@@ -317,8 +321,7 @@ public class App extends Application {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder");
 
-        Stage sesttingStage = (Stage) textArea.getScene().getWindow();
-        File selectedDirectory = directoryChooser.showDialog(sesttingStage);
+        File selectedDirectory = directoryChooser.showDialog(new Stage());
 
         if (selectedDirectory != null) {
             String folderPath = selectedDirectory.getAbsolutePath();
@@ -352,13 +355,6 @@ public class App extends Application {
         fl.getListView().scrollTo(fileName);
     }
 
-    private String addTXT(String name) {
-        if (name.toLowerCase().endsWith(".txt")) {
-            return name;
-        }
-        return name + ".txt";
-    }
-
     private ToolBar buildToolbar() {
         ToolBar toolbar = new ToolBar();
 
@@ -377,6 +373,13 @@ public class App extends Application {
         toolbar.getItems().addAll(newButton, saveButton, deleteButton, settingsButton);
 
         return toolbar;
+    }
+
+    private static String addTXT(String name) {
+        if (name.toLowerCase().endsWith(".txt")) {
+            return name;
+        }
+        return name + ".txt";
     }
 
 }
