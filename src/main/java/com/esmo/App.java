@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Properties;
 
 import javafx.application.Application;
@@ -21,7 +20,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
@@ -104,7 +102,7 @@ public class App extends Application {
                     fileNameField.setText(newFileName);
                     sortMoveSelect();
                 } else {
-                    fileAlreadyExistsAlert(newFileName).showAndWait();
+                    Alerts.showErrorAlert("\"" + newFileName + "\" already exists. Please choose a different name.");
                 }
             }
         }
@@ -148,20 +146,20 @@ public class App extends Application {
     }
 
     private String initFolderPath() {
-        Alert alert = new Alert(AlertType.INFORMATION);
-        alert.setTitle("Folder Not Found");
-
+        
         TextField textField = new TextField();
         textField.setPrefWidth(200);
-
+        
         Button button = new Button("...");
         button.setOnAction(e -> textField.setText(showDirectoryChooser()));
-
+        
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(10));
         vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(textField,
-                button));
+        button));
 
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Folder Not Found");
         alert.setHeaderText("Enter a Folder to Open:");
         alert.getDialogPane().setContent(vbox);
 
@@ -188,70 +186,40 @@ public class App extends Application {
             try {
                 FileController.saveFile(filePath, textArea.getText());
             } catch (IOException e) {
-                showErrorAlert("File \"" + selectedFile + "\"could not be saved");
+                Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
             }
         }
-    }
-
-    private void showErrorAlert(String string) {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText("An Unexpected Error Has Occured");
-        alert.setContentText(string);
-        alert.showAndWait();
     }
 
     private void deleteFile() {
         String selectedFile = fl.getSelectedFile();
         String filePath = folderPath + File.separator + selectedFile;
-        confirmDelete(selectedFile).ifPresent(response -> {
+        Alerts.confirmDelete(selectedFile).ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
                     FileController.deleteFile(filePath);
                     fl.removeFile(selectedFile);
                     textArea.clear();
                 } catch (IOException e) {
-                    showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
+                    Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }
             }
         });
     }
 
-    private Optional<ButtonType> confirmDelete(String selectedFile) {
-        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Confirm Delete");
-        confirmation.setHeaderText(null);
-        confirmation.setContentText("Are you sure you want to delete the selected file?\n\t" + selectedFile);
-        return confirmation.showAndWait();
-    }
-
-    private String askNewFileName() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Create New File");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Enter file name:");
-
-        String fileName = dialog.showAndWait().orElse("").strip();
-        if (fileName.isEmpty()) {
-            return null;
-        }
-
-        return fileName;
-    }
-
     private void createNewFile() {
 
-        String fileName = askNewFileName();
+        String fileName = Alerts.askNewFileName();
         if (fileName == null) {
             return;
         }
         fileName = addTXT(fileName);
-        
+
         String filePath = folderPath + File.separator + fileName;
         File newFile = new File(filePath);
 
         if (newFile.exists()) {
-            fileAlreadyExistsAlert(fileName).showAndWait();
+            Alerts.showErrorAlert("\"" + fileName + "\" already exists. Please choose a different name.");
             return;
         }
 
@@ -264,14 +232,6 @@ public class App extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private Alert fileAlreadyExistsAlert(String fileName) {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle("File Already Exists");
-        alert.setHeaderText(null);
-        alert.setContentText("\"" + fileName + "\" already exists. Please choose a different name.");
-        return alert;
     }
 
     private void updateFileList() {
