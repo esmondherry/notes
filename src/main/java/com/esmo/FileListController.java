@@ -46,9 +46,10 @@ public class FileListController {
             return;
         }
         final String sP = searchPhrase;
-        ObservableList<String> filteredList = allFiles.filtered(fileName -> fileName.contains(sP));
+        ObservableList<String> filteredList = allFiles
+                .filtered(fileName -> fileName.toLowerCase().contains(sP.toLowerCase()));
         listView.setItems(filteredList);
-        if (filteredList.size()==1) {
+        if (filteredList.size() == 1) {
             listView.getSelectionModel().select(0);
         }
     }
@@ -56,6 +57,7 @@ public class FileListController {
     public void addFile(String file) {
         allFiles.add(file);
     }
+
     public void removeFile(String file) {
         allFiles.remove(file);
     }
