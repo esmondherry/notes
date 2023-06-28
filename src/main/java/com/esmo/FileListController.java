@@ -48,6 +48,9 @@ public class FileListController {
         final String sP = searchPhrase;
         ObservableList<String> filteredList = allFiles.filtered(fileName -> fileName.contains(sP));
         listView.setItems(filteredList);
+        if (filteredList.size()==1) {
+            listView.getSelectionModel().select(0);
+        }
     }
 
     public void addFile(String file) {
