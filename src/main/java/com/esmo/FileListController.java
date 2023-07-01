@@ -39,7 +39,8 @@ public class FileListController {
     }
 
     /**
-     * Updates the listView to only contain values that have the search phrase within
+     * Updates the listView to only have values that contain the search phrase
+     * 
      * @param searchPhrase the phrase to search for
      */
     public void searchFiles(String searchPhrase) {
@@ -58,10 +59,20 @@ public class FileListController {
         }
     }
 
+    /**
+     * Adds a file to the listview
+     * 
+     * @param file the name of the file to be added
+     */
     public void addFile(String file) {
         allFiles.add(file);
     }
 
+    /**
+     * Removes file from the listview
+     * 
+     * @param file the name of the file to be removed
+     */
     public void removeFile(String file) {
         allFiles.remove(file);
     }
@@ -70,6 +81,11 @@ public class FileListController {
         return listView;
     }
 
+    /**
+     * Returns the text content of the currently selected file
+     * 
+     * @return the current value
+     */
     public String getTextContent() {
         return textContent.getValue();
     }
@@ -78,6 +94,11 @@ public class FileListController {
         return textContent;
     }
 
+    /**
+     * Returns the name of the currently selected file
+     * 
+     * @return the current value
+     */
     public String getSelectedFile() {
         return listView.getSelectionModel().getSelectedItem();
     }
