@@ -130,4 +130,8 @@ public class FileListController {
     public ReadOnlyObjectProperty<String> getSelectedFileProperty() {
         return listView.getSelectionModel().selectedItemProperty();
     }
+
+    public boolean getHasUnsavedChanges() {
+        return hasUnsavedChanges;
+    }
 }

@@ -59,6 +59,13 @@ public class App extends Application {
         primaryStage.setTitle("esmonotes");
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
+            if (fl.getHasUnsavedChanges()) {
+                Alerts.askSave(fileNameField.getText()).ifPresent(response -> {
+                    if (response != ButtonType.OK) {
+                        e.consume();
+                    }
+                });
+            }
             properties.saveProperties();
         });
 
