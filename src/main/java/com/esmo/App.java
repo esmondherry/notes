@@ -56,7 +56,7 @@ public class App extends Application {
 
         Scene scene = new Scene(vbox, 600, 300);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Some Things");
+        primaryStage.setTitle("esmonotes");
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
             properties.saveProperties();
