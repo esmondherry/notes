@@ -1,7 +1,7 @@
 package com.esmo;
 
 import java.util.Optional;
- 
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Alert.AlertType;
@@ -35,6 +35,14 @@ public class Alerts {
         confirmation.setTitle("Confirm Delete");
         confirmation.setHeaderText(null);
         confirmation.setContentText("Are you sure you want to delete the selected file?\n\t" + selectedFile);
+        return confirmation.showAndWait();
+    }
+
+    public static Optional<ButtonType> askSave(String selectedFile) {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Unsaved Info");
+        confirmation.setHeaderText(null);
+        confirmation.setContentText("Continue without saving " + selectedFile + " ?");
         return confirmation.showAndWait();
     }
 }

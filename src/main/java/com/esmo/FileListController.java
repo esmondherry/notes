@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -16,26 +17,49 @@ public class FileListController {
     private ObservableList<String> allFiles;
     private ListView<String> listView;
     private StringProperty textContent;
+    private boolean hasUnsavedChanges;
     private String folderPath = App.folderPath;
 
     public FileListController(ObservableList<String> fileList) {
         this.textContent = new SimpleStringProperty();
+        this.textContent.addListener(observable -> {
+            hasUnsavedChanges = true;
+        });
         this.allFiles = FXCollections.observableArrayList(fileList);
         this.listView = new ListView<>(allFiles);
         listView.getSelectionModel().selectedItemProperty().addListener((observable,
                 oldValue, newValue) -> {
             if (newValue != null) {
-                String filePath = folderPath + File.separator + newValue;
-                try {
-                    String fileContent = FileController.readFile(filePath);
-                    textContent.set(fileContent);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if (hasUnsavedChanges) {
+                    Alerts.askSave(oldValue).ifPresent(response -> {
+                        if (response == ButtonType.OK) {
+                            changeFile(newValue);
+                        } else {
+                            String text = textContent.getValue();
+                            hasUnsavedChanges = false;
+                            listView.getSelectionModel().select(oldValue);
+                            textContent.setValue(text);
+                            hasUnsavedChanges = true;
+                        }
+                    });
+                } else {
+                    changeFile(newValue);
                 }
             }
         });
         VBox.setVgrow(listView, Priority.ALWAYS);
 
+    }
+
+    private void changeFile(String file) {
+        String filePath = folderPath + File.separator + file;
+        try {
+            String fileContent = FileController.readFile(filePath);
+            textContent.set(fileContent);
+            hasUnsavedChanges = false;
+        } catch (IOException e) {
+            System.err.println("file could not be read");
+        }
     }
 
     /**

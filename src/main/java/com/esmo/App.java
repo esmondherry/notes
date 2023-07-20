@@ -82,9 +82,7 @@ public class App extends Application {
         HBox fileNameBox = new HBox(fileNameField, changeButton);
         // could be split here
         textArea = new TextArea();
-        fl.getTextContentProperty().addListener((observable, oldValue, newValue) -> {
-            textArea.setText(newValue);
-        });
+        textArea.textProperty().bindBidirectional(fl.getTextContentProperty());
         VBox.setVgrow(textArea, Priority.ALWAYS);
 
         return new VBox(fileNameBox, textArea);
