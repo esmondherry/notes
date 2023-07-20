@@ -27,7 +27,7 @@ public class FileListController {
         });
         this.allFiles = FXCollections.observableArrayList(fileList);
         this.listView = new ListView<>(allFiles);
-        listView.getSelectionModel().selectedItemProperty().addListener((observable,
+        this.listView.getSelectionModel().selectedItemProperty().addListener((observable,
                 oldValue, newValue) -> {
             if (newValue != null) {
                 if (hasUnsavedChanges) {
@@ -49,6 +49,19 @@ public class FileListController {
         });
         VBox.setVgrow(listView, Priority.ALWAYS);
 
+    }
+
+    public void saveFile() {
+        String selectedFile = getSelectedFile();
+        if (selectedFile != null) {
+            String filePath = folderPath + File.separator + selectedFile;
+            try {
+                FileController.saveFile(filePath, textContent.getValue());
+                hasUnsavedChanges = false;
+            } catch (IOException e) {
+                Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
+            }
+        }
     }
 
     private void changeFile(String file) {

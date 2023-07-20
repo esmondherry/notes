@@ -155,17 +155,7 @@ public class App extends Application {
         return value;
     }
 
-    private void saveFile() {
-        String selectedFile = fl.getSelectedFile();
-        if (selectedFile != null) {
-            String filePath = folderPath + File.separator + selectedFile;
-            try {
-                FileController.saveFile(filePath, textArea.getText());
-            } catch (IOException e) {
-                Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
-            }
-        }
-    }
+    
 
     private void deleteFile() {
         String selectedFile = fl.getSelectedFile();
@@ -306,7 +296,7 @@ public class App extends Application {
         newButton.setOnAction(e -> createNewFile());
 
         Button saveButton = new Button("Save");
-        saveButton.setOnAction(e -> saveFile());
+        saveButton.setOnAction(e -> fl.saveFile());
 
         Button deleteButton = new Button("Delete");
         deleteButton.setOnAction(e -> deleteFile());
