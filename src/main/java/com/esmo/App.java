@@ -1,12 +1,7 @@
 package com.esmo;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Properties;
-
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,7 +24,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class App extends Application {
-    final private static String CONFIG_PATH = "config.properties";
     protected static String folderPath = "";
 
     private TextArea textArea;
@@ -37,7 +31,7 @@ public class App extends Application {
     private TextField fileNameField;
 
     private TextField folderPathField;
-    private Properties properties = new Properties();
+    private PropertiesController properties;
     private FileListController fl;
 
     public static void main(String[] args) {
@@ -46,9 +40,12 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-
-        loadProperties();
+        properties = new PropertiesController();
+        if (properties.getProperty("folderPath") == null) {
+            properties.setProperty("folderPath", initFolderPath());
+        }
         folderPath = properties.getProperty("folderPath");
+
         updateFileList();
 
         SplitPane splitPane = new SplitPane(buildTextPane(), buildFilesPane());
@@ -61,6 +58,9 @@ public class App extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Some Things");
         primaryStage.show();
+        primaryStage.setOnCloseRequest(e -> {
+            properties.saveProperties();
+        });
 
     }
 
@@ -125,38 +125,18 @@ public class App extends Application {
         return new VBox(searchBox, fl.getListView());
     }
 
-    private void loadProperties() {
-        try (FileReader fileReader = new FileReader(CONFIG_PATH)) {
-            properties.load(fileReader);
-        } catch (FileNotFoundException e) {
-            createPropertiesFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void createPropertiesFile() {
-        try (FileWriter fileWriter = new FileWriter(CONFIG_PATH)) {
-            properties.setProperty("folderPath", initFolderPath());
-
-            properties.store(fileWriter, "Config");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private String initFolderPath() {
-        
+
         TextField textField = new TextField();
         textField.setPrefWidth(200);
-        
+
         Button button = new Button("...");
         button.setOnAction(e -> textField.setText(showDirectoryChooser()));
-        
+
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(10));
         vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(textField,
-        button));
+                button));
 
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Folder Not Found");
@@ -168,15 +148,6 @@ public class App extends Application {
         String value = textField.getText();
         System.out.println("Entered value: " + value);
         return value;
-    }
-
-    private void saveProperties() {
-        try {
-            FileWriter fileWriter = new FileWriter(CONFIG_PATH);
-            properties.store(fileWriter, "Config");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void saveFile() {
@@ -308,9 +279,7 @@ public class App extends Application {
             properties.setProperty("folderPath", newFolderPath);
             updateFileList();
         }
-
-        saveProperties();
-
+        properties.saveProperties();
     }
 
     private void sortMoveSelect() {
