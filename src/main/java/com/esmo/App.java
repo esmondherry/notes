@@ -59,7 +59,7 @@ public class App extends Application {
         primaryStage.setTitle("esmonotes");
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
-            if (fl.getHasUnsavedChanges()) {
+            if (fl.getHasUnsavedChanges()&&fl.getSelectedFile()!=null) {
                 Alerts.askSave(fileNameField.getText()).ifPresent(response -> {
                     if (response != ButtonType.OK) {
                         e.consume();

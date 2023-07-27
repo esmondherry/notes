@@ -30,7 +30,9 @@ public class FileListController {
         this.listView.getSelectionModel().selectedItemProperty().addListener((observable,
                 oldValue, newValue) -> {
             if (newValue != null) {
-                if (hasUnsavedChanges) {
+                if (oldValue == null) {
+                    changeFile(newValue);
+                } else if (hasUnsavedChanges) {
                     Alerts.askSave(oldValue).ifPresent(response -> {
                         if (response == ButtonType.OK) {
                             changeFile(newValue);
