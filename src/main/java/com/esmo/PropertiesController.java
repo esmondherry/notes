@@ -7,11 +7,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-public class PropertiesController extends Properties {
+public class PropertiesController {
     private String configFolder;
     private String configFile;
+    private Properties props;
 
     public PropertiesController() {
+        props = new Properties();
         if (System.getProperty("os.name").contains("Windows")) {
             configFolder = System.getProperty("user.home") + "\\AppData\\Local\\esmonotes\\";
         } else {
@@ -23,7 +25,7 @@ public class PropertiesController extends Properties {
 
     private void loadProperties() {
         try (FileReader fileReader = new FileReader(configFile)) {
-            this.load(fileReader);
+            props.load(fileReader);
         } catch (FileNotFoundException e) {
             createPropertiesFile();
         } catch (IOException e) {
@@ -43,14 +45,22 @@ public class PropertiesController extends Properties {
 
     public void saveProperties() {
         try (FileWriter fileWriter = new FileWriter(configFile);) {
-            this.store(fileWriter, "Configurations");
+            props.store(fileWriter, "Configurations");
         } catch (IOException e) {
             System.err.println("config file could not be saved");
         }
     }
 
+    public void setProperty(String key, String value) {
+        props.setProperty(key, value);
+    }
+
+    public String getProperty(String key) {
+        return props.getProperty(key);
+    }
+
     public Properties getProperties() {
-        return this;
+        return props;
     }
 
 }
