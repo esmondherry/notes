@@ -17,13 +17,19 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class App extends Application {
+    final private int WINDOW_WIDTH = 600;
+    final private int WINDOW_HEIGHT = 300;
+    
     protected static String folderPath = "";
 
     private TextArea textArea;
@@ -54,12 +60,11 @@ public class App extends Application {
         VBox vbox = new VBox(splitPane, buildToolbar());
         VBox.setVgrow(splitPane, Priority.ALWAYS);
 
-        Scene scene = new Scene(vbox, 600, 300);
-        primaryStage.setScene(scene);
+        primaryStage.setScene(buildScene(vbox));
         primaryStage.setTitle("esmonotes");
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
-            if (fl.getHasUnsavedChanges()&&fl.getSelectedFile()!=null) {
+            if (fl.getHasUnsavedChanges() && fl.getSelectedFile() != null) {
                 Alerts.askSave(fileNameField.getText()).ifPresent(response -> {
                     if (response != ButtonType.OK) {
                         e.consume();
@@ -69,6 +74,22 @@ public class App extends Application {
             properties.saveProperties();
         });
 
+    }
+
+    private Scene buildScene(Pane pane) {
+        Scene scene = new Scene(pane, WINDOW_WIDTH, WINDOW_HEIGHT);
+        KeyCombination controlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+        KeyCombination controlN = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+        scene.setOnKeyPressed(keyPressed -> {
+            if (controlS.match(keyPressed)) {
+                System.out.println("shortcut \"Save\" used");
+                fl.saveFile();
+            } else if (controlN.match(keyPressed)) {
+                System.out.println("shortcut \"New File\" used");
+                createNewFile();
+            }
+        });
+        return scene;
     }
 
     private VBox buildTextPane() {
@@ -154,8 +175,6 @@ public class App extends Application {
         System.out.println("Entered value: " + value);
         return value;
     }
-
-    
 
     private void deleteFile() {
         String selectedFile = fl.getSelectedFile();
