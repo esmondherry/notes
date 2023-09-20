@@ -1,10 +1,9 @@
 package com.esmo;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
+
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -12,16 +11,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -29,16 +24,14 @@ import javafx.stage.Stage;
 public class App extends Application {
     final private int WINDOW_WIDTH = 600;
     final private int WINDOW_HEIGHT = 300;
-    
+
     protected static String folderPath = "";
-
-    private TextArea textArea;
-
-    private TextField fileNameField;
 
     private TextField folderPathField;
     private PropertiesController properties;
-    private FileListController fl;
+
+    private Model model;
+    private Controller controller;
 
     public static void main(String[] args) {
         launch(args);
@@ -52,20 +45,19 @@ public class App extends Application {
         }
         folderPath = properties.getProperty("folderPath");
 
-        updateFileList();
+        View view = new View();
+        model = new Model(Path.of(folderPath));
+        controller = new Controller(view, model);
 
-        SplitPane splitPane = new SplitPane(buildTextPane(), buildFilesPane());
-        splitPane.setDividerPositions(0.7);
+        view.getSettingsButton().setOnAction(e -> openSettings());
 
-        VBox vbox = new VBox(splitPane, buildToolbar());
-        VBox.setVgrow(splitPane, Priority.ALWAYS);
-
-        primaryStage.setScene(buildScene(vbox));
+        Scene scene = buildScene(view.getPane());
+        primaryStage.setScene(scene);
         primaryStage.setTitle("esmonotes");
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
-            if (fl.getHasUnsavedChanges() && fl.getSelectedFile() != null) {
-                Alerts.askSave(fileNameField.getText()).ifPresent(response -> {
+            if (controller.hasUnsavedChanges() && view.getListView().getSelectionModel().getSelectedItem() != null) {
+                Alerts.askSave(view.getNameField().getText()).ifPresent(response -> {
                     if (response != ButtonType.OK) {
                         e.consume();
                     }
@@ -83,72 +75,13 @@ public class App extends Application {
         scene.setOnKeyPressed(keyPressed -> {
             if (controlS.match(keyPressed)) {
                 System.out.println("shortcut \"Save\" used");
-                fl.saveFile();
+                controller.saveFile();
             } else if (controlN.match(keyPressed)) {
                 System.out.println("shortcut \"New File\" used");
-                createNewFile();
+                controller.createNewFile();
             }
         });
         return scene;
-    }
-
-    private VBox buildTextPane() {
-
-        fileNameField = new TextField();
-        fileNameField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) {
-                changeFileName();
-            }
-        });
-        fl.getSelectedFileProperty().addListener((observable, oldValue, newValue) -> {
-            fileNameField.setText(newValue);
-        });
-
-        Button changeButton = new Button("Change");
-        changeButton.setOnAction(e -> changeFileName());
-
-        HBox fileNameBox = new HBox(fileNameField, changeButton);
-        // could be split here
-        textArea = new TextArea();
-        textArea.textProperty().bindBidirectional(fl.getTextContentProperty());
-        VBox.setVgrow(textArea, Priority.ALWAYS);
-
-        return new VBox(fileNameBox, textArea);
-    }
-
-    private void changeFileName() {
-        String selectedFile = fl.getListView().getSelectionModel().getSelectedItem();
-        if (selectedFile != null) {
-            String newFileName = addTXT(fileNameField.getText());
-            if (!newFileName.isEmpty()) {
-                String oldFilePath = folderPath + File.separator + selectedFile;
-                if (FileController.changeFileName(oldFilePath, newFileName)) {
-                    fl.removeFile(selectedFile);
-                    fl.addFile(newFileName);
-                    fileNameField.setText(newFileName);
-                    sortMoveSelect();
-                } else {
-                    Alerts.showErrorAlert("\"" + newFileName + "\" already exists. Please choose a different name.");
-                }
-            }
-        }
-    }
-
-    private VBox buildFilesPane() {
-
-        TextField searchField = new TextField();
-        searchField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) {
-                fl.searchFiles(searchField.getText());
-            }
-        });
-
-        Button searchButton = new Button("Search");
-        searchButton.setOnAction(e -> fl.searchFiles(searchField.getText()));
-
-        HBox searchBox = new HBox(searchField, searchButton);
-
-        return new VBox(searchBox, fl.getListView());
     }
 
     private String initFolderPath() {
@@ -174,65 +107,6 @@ public class App extends Application {
         String value = textField.getText();
         System.out.println("Entered value: " + value);
         return value;
-    }
-
-    private void deleteFile() {
-        String selectedFile = fl.getSelectedFile();
-        String filePath = folderPath + File.separator + selectedFile;
-        Alerts.confirmDelete(selectedFile).ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                try {
-                    FileController.deleteFile(filePath);
-                    fl.removeFile(selectedFile);
-                    textArea.clear();
-                } catch (IOException e) {
-                    Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
-                }
-            }
-        });
-    }
-
-    private void createNewFile() {
-
-        String fileName = Alerts.askNewFileName();
-        if (fileName == null) {
-            return;
-        }
-        fileName = addTXT(fileName);
-
-        String filePath = folderPath + File.separator + fileName;
-        File newFile = new File(filePath);
-
-        if (newFile.exists()) {
-            Alerts.showErrorAlert("\"" + fileName + "\" already exists. Please choose a different name.");
-            return;
-        }
-
-        try {
-            FileController.createFile(filePath);
-            fl.addFile(addTXT(fileName));
-            textArea.clear();
-            sortMoveSelect(fileName);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void updateFileList() {
-        ObservableList<String> fileList = FXCollections.observableArrayList();
-        File folder = new File(folderPath);
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile() && file.getName().endsWith(".txt")) {
-                        fileList.add(file.getName());
-                    }
-                }
-            }
-        }
-        fl = new FileListController(fileList);
     }
 
     private void openSettings() {
@@ -291,48 +165,9 @@ public class App extends Application {
         if (!newFolderPath.isEmpty()) {
             folderPath = newFolderPath;
             properties.setProperty("folderPath", newFolderPath);
-            updateFileList();
+            model.setFolderPath(Path.of(folderPath));
         }
         properties.saveProperties();
-    }
-
-    private void sortMoveSelect() {
-        fl.getListView().getSelectionModel().selectLast();
-        FXCollections.sort(fl.getListView().getItems(), (a, b) -> a.toLowerCase().compareTo(b.toLowerCase()));
-        fl.getListView().scrollTo(fl.getListView().getSelectionModel().getSelectedItem());
-    }
-
-    private void sortMoveSelect(String fileName) {
-        FXCollections.sort(fl.getListView().getItems(), (a, b) -> a.toLowerCase().compareTo(b.toLowerCase()));
-        fl.getListView().getSelectionModel().select(fileName);
-        fl.getListView().scrollTo(fileName);
-    }
-
-    private ToolBar buildToolbar() {
-        ToolBar toolbar = new ToolBar();
-
-        Button newButton = new Button("New");
-        newButton.setOnAction(e -> createNewFile());
-
-        Button saveButton = new Button("Save");
-        saveButton.setOnAction(e -> fl.saveFile());
-
-        Button deleteButton = new Button("Delete");
-        deleteButton.setOnAction(e -> deleteFile());
-
-        Button settingsButton = new Button("Settings");
-        settingsButton.setOnAction(e -> openSettings());
-
-        toolbar.getItems().addAll(newButton, saveButton, deleteButton, settingsButton);
-
-        return toolbar;
-    }
-
-    private static String addTXT(String name) {
-        if (name.toLowerCase().endsWith(".txt")) {
-            return name;
-        }
-        return name + ".txt";
     }
 
 }
