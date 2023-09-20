@@ -42,6 +42,8 @@ public class View {
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             nameField.setText(newValue);
         });
+        VBox.setVgrow(listView, Priority.ALWAYS);
+
         VBox filesPane = new VBox(searchBox, listView);
 
         SplitPane splitPane = new SplitPane(textPane, filesPane);
@@ -101,5 +103,5 @@ public class View {
     public Button getSettingsButton() {
         return settingsButton;
     }
-
+    
 }
