@@ -34,19 +34,34 @@ public class Model {
     }
 
     public void deleteFile(String fileName) throws IOException {
+        fileName = addTXT(fileName);
         Files.delete(folderPath.resolve(fileName));
         fileList.remove(fileName);
     }
 
     public void addFile(String fileName) throws IOException {
+        fileName = addTXT(fileName);
         Files.createFile(folderPath.resolve(fileName));
         fileList.add(fileName);
     }
 
     public void renameFile(String deadName, String newName) throws IOException {
+        deadName = addTXT(deadName);
+        newName = addTXT(newName);
         Files.move(folderPath.resolve(deadName), folderPath.resolve(newName));
         fileList.remove(deadName);
         fileList.add(newName);
+    }
+
+    public void save(String fileName, String content) throws IOException {
+        fileName = addTXT(fileName);
+        Path filePath = folderPath.resolve(fileName);
+        Files.writeString(filePath, content);
+    }
+
+    public String load(String fileName) throws Exception {
+        fileName = addTXT(fileName);
+        return Files.readString(folderPath.resolve(fileName));
     }
 
     private void updateFileList() {
@@ -65,4 +80,10 @@ public class Model {
         fileList.setAll(files);
     }
 
+    private static String addTXT(String name) {
+        if (name.toLowerCase().endsWith(".txt")) {
+            return name;
+        }
+        return name + ".txt";
+    }
 }

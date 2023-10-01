@@ -151,9 +151,8 @@ public class Controller {
     public void saveFile() {
         String selectedFile = view.getListView().getSelectionModel().getSelectedItem();
         if (selectedFile != null) {
-            Path filePath = model.getFolderPath().resolve(selectedFile);
             try {
-                Files.writeString(filePath, view.getTextArea().getText());
+                model.save(selectedFile, view.getTextArea().getText());
                 hasUnsavedChanges = false;
             } catch (IOException e) {
                 Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
@@ -162,13 +161,12 @@ public class Controller {
     }
 
     private void changeFile(String file) {
-        Path filePath = model.getFolderPath().resolve(file);
         try {
-            String fileContent = Files.readString(filePath);
+            String fileContent = model.load(file);
             view.getTextArea().setText(fileContent);
             hasUnsavedChanges = false;
         } catch (IOException e) {
-            System.err.println("file could not be read");
+            Alerts.showErrorAlert("file could not be read");
         }
     }
 
