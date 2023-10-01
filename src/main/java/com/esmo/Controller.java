@@ -119,7 +119,8 @@ public class Controller {
                 try {
                     model.deleteFile(selectedFile);
                     view.getTextArea().clear();
-                } catch (IOException e) {
+                    hasUnsavedChanges=false;
+                } catch (Exception e) {
                     Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }
             }
