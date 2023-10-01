@@ -2,8 +2,6 @@ package com.esmo;
 
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -12,10 +10,10 @@ import javafx.scene.input.KeyCode;
 
 public class Controller {
     private View view;
-    private Model model;
+    private Storage model;
     private boolean hasUnsavedChanges = false;
 
-    public Controller(View view, Model model) {
+    public Controller(View view, Storage model) {
         this.view = view;
         this.model = model;
         init();
@@ -98,13 +96,13 @@ public class Controller {
     private void changeFileName() {
         String selectedFile = view.getListView().getSelectionModel().getSelectedItem();
         if (selectedFile != null) {
-            String newFileName = addTXT(view.getNameField().getText());
+            String newFileName = view.getNameField().getText();
             if (!newFileName.isEmpty()) {
                 try {
-                    model.renameFile(selectedFile, newFileName);
+                    model.rename(selectedFile, newFileName);
                     view.getNameField().setText(newFileName);
                     sortMoveSelect(newFileName);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Alerts.showErrorAlert(
                             "\"" + newFileName + "\" already exists. Please choose a different name. or something...");
                 }
@@ -117,7 +115,7 @@ public class Controller {
         Alerts.confirmDelete(selectedFile).ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
-                    model.deleteFile(selectedFile);
+                    model.delete(selectedFile);
                     view.getTextArea().clear();
                     hasUnsavedChanges=false;
                 } catch (Exception e) {
@@ -133,16 +131,15 @@ public class Controller {
         if (fileName == null) {
             return;
         }
-        fileName = addTXT(fileName);
 
         try {
-            model.addFile(fileName);
+            model.add(fileName);
             view.getTextArea().clear();
             sortMoveSelect(fileName);
 
         } catch (FileAlreadyExistsException e) {
             Alerts.showErrorAlert("\"" + fileName + "\" already exists. Please choose a different name.");
-        } catch (IOException e) {
+        } catch (Exception e) {
             Alerts.showErrorAlert("Something went wrong...");
             e.printStackTrace();
         }
@@ -154,7 +151,7 @@ public class Controller {
             try {
                 model.save(selectedFile, view.getTextArea().getText());
                 hasUnsavedChanges = false;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
             }
         }
@@ -165,22 +162,15 @@ public class Controller {
             String fileContent = model.load(file);
             view.getTextArea().setText(fileContent);
             hasUnsavedChanges = false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             Alerts.showErrorAlert("file could not be read");
         }
     }
 
     private void sortMoveSelect(String fileName) {
-        FXCollections.sort(model.getFileList(), (a, b) -> a.toLowerCase().compareTo(b.toLowerCase()));
+        FXCollections.sort(model.getFileList(), (a, b) -> a.compareToIgnoreCase(b));
         view.getListView().getSelectionModel().select(fileName);
         view.getListView().scrollTo(fileName);
-    }
-
-    private static String addTXT(String name) {
-        if (name.toLowerCase().endsWith(".txt")) {
-            return name;
-        }
-        return name + ".txt";
     }
 
 }

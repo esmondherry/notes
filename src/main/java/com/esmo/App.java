@@ -1,7 +1,9 @@
 package com.esmo;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -30,7 +32,7 @@ public class App extends Application {
     private TextField folderPathField;
     private PropertiesController properties;
 
-    private Model model;
+    private Storage model;
     private Controller controller;
 
     public static void main(String[] args) {
@@ -38,7 +40,7 @@ public class App extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         properties = new PropertiesController();
         if (properties.getProperty("folderPath") == null) {
             properties.setProperty("folderPath", initFolderPath());
@@ -46,7 +48,8 @@ public class App extends Application {
         folderPath = properties.getProperty("folderPath");
 
         View view = new View();
-        model = new Model(Path.of(folderPath));
+        // model = new DatabaseModel("jdbc:sqlite:notes.db");
+        model = new FileModel(Path.of(folderPath));
         controller = new Controller(view, model);
 
         view.getSettingsButton().setOnAction(e -> openSettings());
@@ -165,7 +168,9 @@ public class App extends Application {
         if (!newFolderPath.isEmpty()) {
             folderPath = newFolderPath;
             properties.setProperty("folderPath", newFolderPath);
-            model.setFolderPath(Path.of(folderPath));
+            if (model instanceof FileModel) {
+                ((FileModel) model).setFolderPath(Path.of(folderPath));
+            }
         }
         properties.saveProperties();
     }

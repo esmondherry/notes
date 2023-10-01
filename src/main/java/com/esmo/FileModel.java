@@ -10,11 +10,11 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class Model {
+public class FileModel implements Storage {
     private Path folderPath;
     private ObservableList<String> fileList;
 
-    public Model(Path folderPath) {
+    public FileModel(Path folderPath) {
         this.folderPath = folderPath;
         fileList = FXCollections.observableArrayList();
         updateFileList();
@@ -25,6 +25,7 @@ public class Model {
         updateFileList();
     }
 
+    @Override
     public ObservableList<String> getFileList() {
         return fileList;
     }
@@ -33,19 +34,22 @@ public class Model {
         return folderPath;
     }
 
-    public void deleteFile(String fileName) throws IOException {
+    @Override
+    public void delete(String fileName) throws IOException {
         fileName = addTXT(fileName);
         Files.delete(folderPath.resolve(fileName));
         fileList.remove(fileName);
     }
 
-    public void addFile(String fileName) throws IOException {
+    @Override
+    public void add(String fileName) throws IOException {
         fileName = addTXT(fileName);
         Files.createFile(folderPath.resolve(fileName));
         fileList.add(fileName);
     }
 
-    public void renameFile(String deadName, String newName) throws IOException {
+    @Override
+    public void rename(String deadName, String newName) throws IOException {
         deadName = addTXT(deadName);
         newName = addTXT(newName);
         Files.move(folderPath.resolve(deadName), folderPath.resolve(newName));
@@ -53,12 +57,14 @@ public class Model {
         fileList.add(newName);
     }
 
+    @Override
     public void save(String fileName, String content) throws IOException {
         fileName = addTXT(fileName);
         Path filePath = folderPath.resolve(fileName);
         Files.writeString(filePath, content);
     }
 
+    @Override
     public String load(String fileName) throws Exception {
         fileName = addTXT(fileName);
         return Files.readString(folderPath.resolve(fileName));
