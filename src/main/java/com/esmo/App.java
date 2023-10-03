@@ -5,11 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 
+import com.esmo.controller.SettingsController;
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
+import com.esmo.view.SettingsView;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -56,7 +59,7 @@ public class App extends Application {
         model = new FileModel(Path.of(folderPath));
         controller = new Controller(view, model);
 
-        view.getSettingsButton().setOnAction(e -> openSettings());
+        view.getSettingsButton().setOnAction(e -> openSettings(primaryStage));
 
         Scene scene = buildScene(view.getPane());
         primaryStage.setScene(scene);
@@ -116,40 +119,18 @@ public class App extends Application {
         return value;
     }
 
-    private void openSettings() {
-        Stage settingsStage = new Stage();
-        settingsStage.setTitle("Settings");
-
-        folderPathField = new TextField(folderPath);
-        folderPathField.setPrefWidth(200);
-
-        Button folderPathButton = new Button("...");
-        folderPathButton.setOnAction(e -> folderPathField.setText(showDirectoryChooser()));
-
-        Button okButton = new Button("OK");
-        okButton.setOnAction(e -> {
+    private void openSettings(Stage stage) {
+        var view = new SettingsView(stage);
+        var controller = new SettingsController(view);
+        Stage settingsStage = view.getStage();
+        view.getFolderPathField().setText(folderPath);
+        view.getOkButton().setOnAction(e -> {
             applySettings();
             settingsStage.close();
         });
-
-        Button applyButton = new Button("Apply");
-        applyButton.setOnAction(e -> {
+        view.getApplyButton().setOnAction(e -> {
             applySettings();
         });
-
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setOnAction(e -> settingsStage.close());
-
-        VBox vbox = new VBox(10);
-        vbox.setPadding(new Insets(10));
-        vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(folderPathField, folderPathButton));
-
-        HBox buttonBox = new HBox(10);
-        buttonBox.getChildren().addAll(okButton, applyButton, cancelButton);
-        vbox.getChildren().add(buttonBox);
-
-        Scene scene = new Scene(vbox);
-        settingsStage.setScene(scene);
         settingsStage.show();
     }
 
