@@ -10,8 +10,10 @@ import javafx.stage.Stage;
 
 public class SettingsController {
     private SettingsView view;
+    private InfoCenter infoCenter;
 
     public SettingsController(SettingsView view) {
+        infoCenter = InfoCenter.getInfoCenter();
         this.view = view;
 
         actionHandlers();
@@ -30,6 +32,7 @@ public class SettingsController {
 
     private void handleApply() {
         InfoCenter.getInfoCenter().setFolderPath(view.getFolderPathField().getText().trim());
+        changeTheme();
         InfoCenter.getInfoCenter().save();
     }
 
@@ -46,11 +49,14 @@ public class SettingsController {
         view.getFolderPathField().setText(folder);
     }
 
+    private void changeTheme() {
+        infoCenter.setTheme(view.getComboBox().getSelectionModel().getSelectedItem());
+    }
+
     private String showDirectoryChooser() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder");
-
-        File selectedDirectory = directoryChooser.showDialog(new Stage());
+        File selectedDirectory = directoryChooser.showDialog(view.getStage());
 
         if (selectedDirectory != null) {
             String folderPath = selectedDirectory.getAbsolutePath();

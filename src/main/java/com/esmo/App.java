@@ -1,12 +1,17 @@
 package com.esmo;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
+
 import com.esmo.controller.AppController;
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
+
 import javafx.application.Application;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -51,9 +56,11 @@ public class App extends Application {
         Scene scene = buildScene(view.getPane());
         primaryStage.setScene(scene);
         primaryStage.setTitle("esmonotes");
+        infoCenter.loadTheme(primaryStage);
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
-            if (controller.hasUnsavedChanges() && view.getListView().getSelectionModel().getSelectedItem() != null) {
+            if (controller.hasUnsavedChanges() &&
+                    view.getListView().getSelectionModel().getSelectedItem() != null) {
                 Alerts.askSave(view.getNameField().getText()).ifPresent(response -> {
                     if (response != ButtonType.OK) {
                         e.consume();

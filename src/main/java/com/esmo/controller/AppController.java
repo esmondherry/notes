@@ -106,7 +106,7 @@ public class AppController {
     }
 
     private void changeFileName() {
-        String selectedFile = view.getListView().getSelectionModel().getSelectedItem();
+        String selectedFile = getSelectedFile();
         if (selectedFile != null) {
             String newFileName = view.getNameField().getText();
             if (!newFileName.isEmpty()) {
@@ -123,13 +123,14 @@ public class AppController {
     }
 
     private void deleteFile() {
-        String selectedFile = view.getListView().getSelectionModel().getSelectedItem();
+        String selectedFile = getSelectedFile();
         Alerts.confirmDelete(selectedFile).ifPresent(response -> {
             if (response == ButtonType.OK) {
                 try {
                     model.delete(selectedFile);
                     view.getTextArea().clear();
                     hasUnsavedChanges = false;
+                    changeFile(getSelectedFile());
                 } catch (Exception e) {
                     Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }
@@ -158,7 +159,7 @@ public class AppController {
     }
 
     public void saveFile() {
-        String selectedFile = view.getListView().getSelectionModel().getSelectedItem();
+        String selectedFile = getSelectedFile();
         if (selectedFile != null) {
             try {
                 model.save(selectedFile, view.getTextArea().getText());
@@ -167,6 +168,10 @@ public class AppController {
                 Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
             }
         }
+    }
+
+    private String getSelectedFile() {
+        return view.getListView().getSelectionModel().getSelectedItem();
     }
 
     private void changeFile(String file) {

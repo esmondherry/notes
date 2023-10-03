@@ -35,6 +35,7 @@ public class AppView {
         VBox textPane = new VBox(nameBox, textArea);
 
         searchField = new TextField();
+        HBox.setHgrow(searchField, Priority.ALWAYS);
         searchButton = new Button("Search");
         HBox searchBox = new HBox(searchField, searchButton);
 

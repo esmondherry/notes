@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.esmo.Alerts;
+import com.esmo.InfoCenter;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,6 +21,9 @@ public class FileModel implements Storage {
         this.folderPath = folderPath;
         fileList = FXCollections.observableArrayList();
         updateFileList();
+        InfoCenter.getInfoCenter().addListener(e -> {
+            setFolderPath(Path.of(InfoCenter.getInfoCenter().getFolderPath()));
+        });
     }
 
     public void setFolderPath(Path folderPath) {
@@ -38,23 +42,19 @@ public class FileModel implements Storage {
 
     @Override
     public void delete(String fileName) throws IOException {
-        fileName = addTXT(fileName);
-        Files.delete(folderPath.resolve(fileName));
+        Files.delete(folderPath.resolve(addTXT(fileName)));
         fileList.remove(fileName);
     }
 
     @Override
     public void add(String fileName) throws IOException {
-        fileName = addTXT(fileName);
-        Files.createFile(folderPath.resolve(fileName));
+        Files.createFile(folderPath.resolve(addTXT(fileName)));
         fileList.add(fileName);
     }
 
     @Override
     public void rename(String deadName, String newName) throws IOException {
-        deadName = addTXT(deadName);
-        newName = addTXT(newName);
-        Files.move(folderPath.resolve(deadName), folderPath.resolve(newName));
+        Files.move(folderPath.resolve(addTXT(deadName)), folderPath.resolve(addTXT(newName)));
         fileList.remove(deadName);
         fileList.add(newName);
     }
@@ -76,7 +76,8 @@ public class FileModel implements Storage {
         List<String> files = new ArrayList<>();
         try {
             Files.newDirectoryStream(folderPath, "*.txt").forEach(e -> {
-                files.add(e.getFileName().toString());
+                String file = e.getFileName().toString();
+                files.add(file.substring(0, file.length()-4));
             });
         } catch (NotDirectoryException e) {
             Alerts.showErrorAlert("The currently selected path is not a directory");
