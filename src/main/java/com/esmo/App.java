@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 
+import com.esmo.controller.AppController;
 import com.esmo.controller.SettingsController;
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
@@ -40,7 +41,7 @@ public class App extends Application {
     private PropertiesController properties;
 
     private Storage model;
-    private Controller controller;
+    private AppController controller;
 
     public static void main(String[] args) {
         launch(args);
@@ -57,7 +58,7 @@ public class App extends Application {
         AppView view = new AppView();
         // model = new DatabaseModel("jdbc:sqlite:notes.db");
         model = new FileModel(Path.of(folderPath));
-        controller = new Controller(view, model);
+        controller = new AppController(view, model);
 
         view.getSettingsButton().setOnAction(e -> openSettings(primaryStage));
 
