@@ -23,7 +23,7 @@ public class InfoCenter {
         p = new PropertiesController();
         settings = FXCollections.observableHashMap();
         settings.put("folderPath", p.getProperty("folderPath"));
-        settings.put("theme", p.getProperty("theme"));
+        settings.put("theme", p.getProperty("theme","Default"));
     }
 
     public void addListener(MapChangeListener<? super String, ? super String> listener) {
@@ -73,7 +73,6 @@ public class InfoCenter {
                 sheet.add("css/dark.css");
                 break;
             case "Default":
-                break;
             default:
                 break;
         }

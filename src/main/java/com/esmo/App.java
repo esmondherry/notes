@@ -1,17 +1,13 @@
 package com.esmo;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
-
 import com.esmo.controller.AppController;
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
 
 import javafx.application.Application;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;

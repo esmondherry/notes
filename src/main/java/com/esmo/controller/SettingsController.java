@@ -6,7 +6,6 @@ import com.esmo.InfoCenter;
 import com.esmo.view.SettingsView;
 
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 
 public class SettingsController {
     private SettingsView view;
