@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 
 import com.esmo.model.Storage;
+import com.esmo.view.AppView;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,11 +12,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCode;
 
 public class Controller {
-    private View view;
+    private AppView view;
     private Storage model;
     private boolean hasUnsavedChanges = false;
 
-    public Controller(View view, Storage model) {
+    public Controller(AppView view, Storage model) {
         this.view = view;
         this.model = model;
         init();

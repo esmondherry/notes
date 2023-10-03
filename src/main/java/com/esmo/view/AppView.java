@@ -1,4 +1,4 @@
-package com.esmo;
+package com.esmo.view;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class View {
+public class AppView {
     private VBox pane;
     private ListView<String> listView;
     private Button searchButton;
@@ -23,7 +23,7 @@ public class View {
     private Button deleteButton;
     private Button settingsButton;
 
-    public View() {
+    public AppView() {
 
         nameField = new TextField();
         nameButton = new Button("Change");

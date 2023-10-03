@@ -7,6 +7,8 @@ import java.sql.SQLException;
 
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
+import com.esmo.view.AppView;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -49,7 +51,7 @@ public class App extends Application {
         }
         folderPath = properties.getProperty("folderPath");
 
-        View view = new View();
+        AppView view = new AppView();
         // model = new DatabaseModel("jdbc:sqlite:notes.db");
         model = new FileModel(Path.of(folderPath));
         controller = new Controller(view, model);
