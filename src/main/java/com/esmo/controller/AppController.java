@@ -1,11 +1,11 @@
 package com.esmo.controller;
 
-import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 
 import com.esmo.Alerts;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
+import com.esmo.view.SettingsView;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,14 +20,14 @@ public class AppController {
     public AppController(AppView view, Storage model) {
         this.view = view;
         this.model = model;
-        init();
+        actionHandlers();
     }
 
     public boolean hasUnsavedChanges() {
         return hasUnsavedChanges;
     }
 
-    private void init() {
+    private void actionHandlers() {
         view.getListView().setItems(model.getFileList());
 
         view.getSearchButton().setOnAction(e -> searchFiles());
@@ -57,6 +57,14 @@ public class AppController {
         view.getTextArea().textProperty().addListener((observable) -> {
             hasUnsavedChanges = true;
         });
+        view.getSettingsButton().setOnAction(e -> openSettings());
+    }
+
+    private void openSettings() {
+        SettingsView settingsView = new SettingsView(view.getPane().getScene().getWindow());
+        SettingsController settingsController = new SettingsController(settingsView);
+        settingsView.getStage().show();
+
     }
 
     private void changeSelectedListener(String oldfile, String newfile) {
@@ -121,7 +129,7 @@ public class AppController {
                 try {
                     model.delete(selectedFile);
                     view.getTextArea().clear();
-                    hasUnsavedChanges=false;
+                    hasUnsavedChanges = false;
                 } catch (Exception e) {
                     Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }

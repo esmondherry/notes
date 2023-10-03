@@ -1,19 +1,12 @@
 package com.esmo;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
-
 import com.esmo.controller.AppController;
-import com.esmo.controller.SettingsController;
 import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
-import com.esmo.view.SettingsView;
-
 import javafx.application.Application;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -35,13 +28,9 @@ public class App extends Application {
     final private int WINDOW_WIDTH = 600;
     final private int WINDOW_HEIGHT = 300;
 
-    protected static String folderPath = "";
-
-    private TextField folderPathField;
-    private PropertiesController properties;
-
     private Storage model;
     private AppController controller;
+    private InfoCenter infoCenter;
 
     public static void main(String[] args) {
         launch(args);
@@ -49,18 +38,15 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        properties = new PropertiesController();
-        if (properties.getProperty("folderPath") == null) {
-            properties.setProperty("folderPath", initFolderPath());
+        infoCenter = InfoCenter.getInfoCenter();
+        if (infoCenter.getFolderPath() == null) {
+            infoCenter.setFolderPath(initFolderPath());
         }
-        folderPath = properties.getProperty("folderPath");
 
         AppView view = new AppView();
         // model = new DatabaseModel("jdbc:sqlite:notes.db");
-        model = new FileModel(Path.of(folderPath));
+        model = new FileModel(Path.of(infoCenter.getFolderPath()));
         controller = new AppController(view, model);
-
-        view.getSettingsButton().setOnAction(e -> openSettings(primaryStage));
 
         Scene scene = buildScene(view.getPane());
         primaryStage.setScene(scene);
@@ -74,7 +60,7 @@ public class App extends Application {
                     }
                 });
             }
-            properties.saveProperties();
+            infoCenter.save();
         });
 
     }
@@ -120,21 +106,6 @@ public class App extends Application {
         return value;
     }
 
-    private void openSettings(Stage stage) {
-        var view = new SettingsView(stage);
-        var controller = new SettingsController(view);
-        Stage settingsStage = view.getStage();
-        view.getFolderPathField().setText(folderPath);
-        view.getOkButton().setOnAction(e -> {
-            applySettings();
-            settingsStage.close();
-        });
-        view.getApplyButton().setOnAction(e -> {
-            applySettings();
-        });
-        settingsStage.show();
-    }
-
     private String showDirectoryChooser() {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select Folder");
@@ -147,18 +118,4 @@ public class App extends Application {
         }
         return null;
     }
-
-    private void applySettings() {
-        String newFolderPath = folderPathField.getText().trim();
-
-        if (!newFolderPath.isEmpty()) {
-            folderPath = newFolderPath;
-            properties.setProperty("folderPath", newFolderPath);
-            if (model instanceof FileModel) {
-                ((FileModel) model).setFolderPath(Path.of(folderPath));
-            }
-        }
-        properties.saveProperties();
-    }
-
 }

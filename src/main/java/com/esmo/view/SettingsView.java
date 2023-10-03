@@ -1,5 +1,7 @@
 package com.esmo.view;
 
+import com.esmo.InfoCenter;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -29,6 +31,7 @@ public class SettingsView {
         borderPane.setCenter(gridPane);
 
         folderPathField = new TextField();
+        folderPathField.setText(InfoCenter.getInfoCenter().getFolderPath());
         folderPathButton = new Button("...");
         gridPane.add(new Label("Folder Path:"), 0, 0);
         gridPane.add(new HBox(folderPathField, folderPathButton), 1, 0);
