@@ -3,6 +3,8 @@ package com.esmo;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 
+import com.esmo.model.Storage;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonType;

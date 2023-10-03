@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 
+import com.esmo.model.FileModel;
+import com.esmo.model.Storage;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;

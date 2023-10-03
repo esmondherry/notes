@@ -1,4 +1,4 @@
-package com.esmo;
+package com.esmo.model;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,6 +6,8 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.esmo.Alerts;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

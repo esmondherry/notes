@@ -1,4 +1,4 @@
-package com.esmo;
+package com.esmo.model;
 
 import javafx.collections.ObservableList;
 
