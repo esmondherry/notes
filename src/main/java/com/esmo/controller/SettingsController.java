@@ -6,6 +6,7 @@ import com.esmo.InfoCenter;
 import com.esmo.view.SettingsView;
 
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
 public class SettingsController {
     private SettingsView view;
@@ -30,9 +31,15 @@ public class SettingsController {
     }
 
     private void handleApply() {
-        InfoCenter.getInfoCenter().setFolderPath(view.getFolderPathField().getText().trim());
+        infoCenter.setFolderPath(view.getFolderPathField().getText().trim());
         changeTheme();
-        InfoCenter.getInfoCenter().save();
+        changeOnTop();
+        infoCenter.save();
+    }
+
+    private void changeOnTop() {
+        infoCenter.setOnTop(view.getOnTopCheckBox().isSelected());
+        ((Stage) view.getStage().getOwner()).setAlwaysOnTop(view.getOnTopCheckBox().isSelected());
     }
 
     private void handleOK() {

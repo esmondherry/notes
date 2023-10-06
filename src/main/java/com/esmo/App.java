@@ -53,6 +53,7 @@ public class App extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("esmonotes");
         infoCenter.loadTheme(primaryStage);
+        primaryStage.setAlwaysOnTop(infoCenter.isOnTop());
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
             if (controller.hasUnsavedChanges() &&

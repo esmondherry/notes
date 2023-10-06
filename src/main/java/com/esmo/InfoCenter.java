@@ -23,7 +23,8 @@ public class InfoCenter {
         p = new PropertiesController();
         settings = FXCollections.observableHashMap();
         settings.put("folderPath", p.getProperty("folderPath"));
-        settings.put("theme", p.getProperty("theme","Default"));
+        settings.put("theme", p.getProperty("theme", "Default"));
+        settings.put("alwaysOnTop", p.getProperty("alwaysOnTop", "false"));
     }
 
     public void addListener(MapChangeListener<? super String, ? super String> listener) {
@@ -45,6 +46,18 @@ public class InfoCenter {
     public void setTheme(String theme) {
         settings.put("theme", theme);
         reloadTheme();
+    }
+
+    public boolean isOnTop() {
+        return Boolean.parseBoolean(settings.get("alwaysOnTop"));
+    }
+
+    public void setOnTop(boolean value) {
+        settings.put("alwaysOnTop", value + "");
+    }
+
+    public void setOnTop(String value) {
+        settings.put("alwaysOnTop", value);
     }
 
     private void reloadTheme() {
@@ -79,8 +92,9 @@ public class InfoCenter {
     }
 
     public void save() {
-        p.setProperty("folderPath", settings.get("folderPath"));
-        p.setProperty("theme", settings.get("theme"));
+        for (String s : settings.keySet()) {
+            p.setProperty(s, settings.get(s));
+        }
         p.saveProperties();
     }
 

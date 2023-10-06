@@ -6,6 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -25,6 +26,7 @@ public class SettingsView {
     private TextField folderPathField;
     private Button folderPathButton;
     private InfoCenter infoCenter;
+    private CheckBox onTopCheckBox;
 
     public SettingsView() {
         infoCenter = InfoCenter.getInfoCenter();
@@ -36,20 +38,25 @@ public class SettingsView {
         gridPane.setAlignment(Pos.CENTER);
         borderPane.setCenter(gridPane);
 
+        Label folderLabel = new Label("Folder Path:");
         folderPathField = new TextField();
         folderPathField.setText(infoCenter.getFolderPath());
         folderPathButton = new Button("...");
-        gridPane.add(new Label("Folder Path:"), 0, 0);
+        gridPane.add(folderLabel, 0, 0);
         gridPane.add(new HBox(folderPathField, folderPathButton), 1, 0);
 
-        Label label = new Label("Theme:");
+        Label themeLabel = new Label("Theme:");
         comboBox = new ComboBox<>(FXCollections.observableArrayList("Default", "Dawn", "Day", "Dusk", "Dark"));
         comboBox.getSelectionModel().select(infoCenter.getTheme());
-        gridPane.add(label, 0, 1);
+        gridPane.add(themeLabel, 0, 1);
         gridPane.add(comboBox, 1, 1);
 
+        Label onTopLabel = new Label("Always On Top:");
+        onTopCheckBox = new CheckBox();
+        onTopCheckBox.setSelected(infoCenter.isOnTop());
+        gridPane.addRow(2, onTopLabel, onTopCheckBox);
+
         ToolBar toolBar = new ToolBar();
-        ;
         okButton = new Button("OK");
         applyButton = new Button("Apply");
         cancelButton = new Button("Cancel");
@@ -95,5 +102,9 @@ public class SettingsView {
 
     public ComboBox<String> getComboBox() {
         return comboBox;
+    }
+
+    public CheckBox getOnTopCheckBox() {
+        return onTopCheckBox;
     }
 }
