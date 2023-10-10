@@ -45,7 +45,8 @@ public class App extends Application {
         }
 
         AppView view = new AppView();
-        // model = new DatabaseModel("jdbc:sqlite:notes.db");
+        // String dbLocation = infoCenter.getFolder().concat(File.separator).concat("notes.db");
+        // model = new DatabaseModel("jdbc:sqlite:" + dbLocation);
         model = new FileModel(Path.of(infoCenter.getFolderPath()));
         controller = new AppController(view, model);
 

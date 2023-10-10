@@ -7,11 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
-public class PropertiesController extends Properties {
+public class PropertiesManager extends Properties {
     private String configFolder;
     private String configFile;
 
-    public PropertiesController() {
+    public PropertiesManager() {
         if (System.getProperty("os.name").contains("Windows")) {
             configFolder = System.getProperty("user.home") + "\\AppData\\Local\\esmonotes\\";
         } else {
@@ -47,5 +47,9 @@ public class PropertiesController extends Properties {
         } catch (IOException e) {
             System.err.println("config file could not be saved");
         }
-    }  
+    }
+
+    public String getConfigFolder() {
+        return configFolder;
+    }
 }

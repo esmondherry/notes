@@ -16,11 +16,13 @@ public class InfoCenter {
         return infoStation;
     }
 
+    private String folder;
     private ObservableMap<String, String> settings;
-    private PropertiesController p;
+    private PropertiesManager p;
 
     private InfoCenter() {
-        p = new PropertiesController();
+        p = new PropertiesManager();
+        folder = p.getConfigFolder();
         settings = FXCollections.observableHashMap();
         settings.put("folderPath", p.getProperty("folderPath"));
         settings.put("theme", p.getProperty("theme", "Default"));
@@ -60,12 +62,6 @@ public class InfoCenter {
         settings.put("alwaysOnTop", value);
     }
 
-    private void reloadTheme() {
-        for (Window w : Window.getWindows()) {
-            loadTheme(w);
-        }
-    }
-
     public void loadTheme(Window w) {
         loadTheme(w.getScene().getStylesheets());
     }
@@ -98,4 +94,13 @@ public class InfoCenter {
         p.saveProperties();
     }
 
+    private void reloadTheme() {
+        for (Window w : Window.getWindows()) {
+            loadTheme(w);
+        }
+    }
+
+    public String getFolder() {
+        return folder;
+    }
 }
