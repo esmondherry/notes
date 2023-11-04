@@ -130,7 +130,11 @@ public class AppController {
                     model.delete(selectedFile);
                     view.getTextArea().clear();
                     hasUnsavedChanges = false;
-                    changeFile(getSelectedFile());
+                    if (getSelectedFile() == null) {
+                        clearSearch();
+                    } else {
+                        changeFile(getSelectedFile());
+                    }
                 } catch (Exception e) {
                     Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
                 }
@@ -148,6 +152,7 @@ public class AppController {
         try {
             model.add(fileName);
             view.getTextArea().clear();
+            clearSearch();
             sortMoveSelect(fileName);
 
         } catch (FileAlreadyExistsException e) {
@@ -188,6 +193,11 @@ public class AppController {
         FXCollections.sort(model.getFileList(), (a, b) -> a.compareToIgnoreCase(b));
         view.getListView().getSelectionModel().select(fileName);
         view.getListView().scrollTo(fileName);
+    }
+
+    private void clearSearch() {
+        view.getSearchField().setText("");
+        searchFiles();
     }
 
 }
