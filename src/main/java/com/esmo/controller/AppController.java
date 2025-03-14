@@ -30,11 +30,8 @@ public class AppController {
     private void actionHandlers() {
         view.getListView().setItems(model.getFileList());
 
-        view.getSearchButton().setOnAction(e -> searchFiles());
-        view.getSearchField().setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) {
+        view.getSearchField().setOnKeyReleased(e -> {
                 searchFiles();
-            }
         });
 
         view.getNameButton().setOnAction(e -> changeFileName());

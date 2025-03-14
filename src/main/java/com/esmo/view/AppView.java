@@ -13,7 +13,6 @@ import javafx.scene.layout.VBox;
 public class AppView {
     private VBox pane;
     private ListView<String> listView;
-    private Button searchButton;
     private TextField searchField;
     private Button nameButton;
     private TextField nameField;
@@ -35,9 +34,9 @@ public class AppView {
         VBox textPane = new VBox(nameBox, textArea);
 
         searchField = new TextField();
+        searchField.setPromptText("Search...");
         HBox.setHgrow(searchField, Priority.ALWAYS);
-        searchButton = new Button("Search");
-        HBox searchBox = new HBox(searchField, searchButton);
+        HBox searchBox = new HBox(searchField);
 
         listView = new ListView<>();
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -67,10 +66,6 @@ public class AppView {
 
     public VBox getPane() {
         return pane;
-    }
-
-    public Button getSearchButton() {
-        return searchButton;
     }
 
     public TextField getSearchField() {
@@ -104,5 +99,5 @@ public class AppView {
     public Button getSettingsButton() {
         return settingsButton;
     }
-    
+
 }
