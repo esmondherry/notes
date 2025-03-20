@@ -1,21 +1,26 @@
 package com.esmo.controller;
 
-import java.nio.file.FileAlreadyExistsException;
-
 import com.esmo.Alerts;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
 import com.esmo.view.SettingsView;
-
+import java.nio.file.FileAlreadyExistsException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyCode;
 
 public class AppController {
+
     private AppView view;
     private Storage model;
     private boolean hasUnsavedChanges = false;
+
+    private Map<String, Set<String>> tags = new HashMap<>();
 
     public AppController(AppView view, Storage model) {
         this.view = view;
@@ -30,38 +35,90 @@ public class AppController {
     private void actionHandlers() {
         view.getListView().setItems(model.getFileList());
 
-        view.getSearchField().setOnKeyReleased(e -> {
+        view
+            .getSearchField()
+            .setOnKeyReleased(e -> {
                 searchFiles();
-        });
+            });
 
         view.getNameButton().setOnAction(e -> changeFileName());
-        view.getNameField().setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) {
-                changeFileName();
-            }
-        });
+        view
+            .getNameField()
+            .setOnKeyPressed(e -> {
+                if (e.getCode() == KeyCode.ENTER) {
+                    changeFileName();
+                }
+            });
 
         view.getDeleteButton().setOnAction(e -> deleteFile());
         view.getNewButton().setOnAction(e -> createNewFile());
 
         view.getSaveButton().setOnAction(e -> saveFile());
 
-        view.getListView().getSelectionModel().selectedItemProperty().addListener((observable,
-                oldfile, newfile) -> {
-            changeSelectedListener(oldfile, newfile);
-        });
+        view
+            .getListView()
+            .getSelectionModel()
+            .selectedItemProperty()
+            .addListener((observable, oldfile, newfile) -> {
+                changeSelectedListener(oldfile, newfile);
+            });
 
-        view.getTextArea().textProperty().addListener((observable) -> {
-            hasUnsavedChanges = true;
-        });
+        view
+            .getTextArea()
+            .textProperty()
+            .addListener(observable -> {
+                hasUnsavedChanges = true;
+            });
         view.getSettingsButton().setOnAction(e -> openSettings());
+
+        view.getAddTagButton().setOnAction(e -> addTag());
+        view
+            .getAddTagField()
+            .setOnKeyPressed(e -> {
+                if (e.getCode() == KeyCode.ENTER) {
+                    addTag();
+                }
+            });
+
+        view.getRemoveTag().setOnAction(e -> removeTag());
+    }
+
+    private void removeTag() {
+        view
+            .getTagListView()
+            .getItems()
+            .remove(
+                view.getTagListView().getSelectionModel().getSelectedItem()
+            );
+    }
+
+    private void addTag() {
+        var currentTags = view.getTagListView().getItems();
+        var newTag = view.getAddTagField().getText().strip();
+        if (newTag.isEmpty()) {
+            return;
+        }
+        if (!currentTags.contains(newTag)) {
+            currentTags.add(newTag);
+            view.getAddTagField().setText("");
+            currentTags.sort(String::compareToIgnoreCase);
+            if (!tags.containsKey(getSelectedFile())) {
+                tags.put(getSelectedFile(), new HashSet<>());
+            }
+            tags.get(getSelectedFile()).add(newTag);
+        } else {
+            Alerts.showErrorAlert("Tag already exists");
+        }
     }
 
     private void openSettings() {
-        SettingsView settingsView = new SettingsView(view.getPane().getScene().getWindow());
-        SettingsController settingsController = new SettingsController(settingsView);
+        SettingsView settingsView = new SettingsView(
+            view.getPane().getScene().getWindow()
+        );
+        SettingsController settingsController = new SettingsController(
+            settingsView
+        );
         settingsView.getStage().show();
-
     }
 
     private void changeSelectedListener(String oldfile, String newfile) {
@@ -94,8 +151,11 @@ public class AppController {
             view.getListView().setItems(model.getFileList());
             return;
         }
-        ObservableList<String> filteredList = model.getFileList()
-                .filtered(fileName -> fileName.toLowerCase().contains(searchPhrase.toLowerCase()));
+        ObservableList<String> filteredList = model
+            .getFileList()
+            .filtered(fileName ->
+                fileName.toLowerCase().contains(searchPhrase.toLowerCase())
+            );
         view.getListView().setItems(filteredList);
         if (filteredList.size() == 1) {
             view.getListView().getSelectionModel().select(0);
@@ -113,7 +173,10 @@ public class AppController {
                     sortMoveSelect(newFileName);
                 } catch (Exception e) {
                     Alerts.showErrorAlert(
-                            "\"" + newFileName + "\" already exists. Please choose a different name. or something...");
+                        "\"" +
+                        newFileName +
+                        "\" already exists. Please choose a different name. or something..."
+                    );
                 }
             }
         }
@@ -133,14 +196,15 @@ public class AppController {
                         changeFile(getSelectedFile());
                     }
                 } catch (Exception e) {
-                    Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be deleted");
+                    Alerts.showErrorAlert(
+                        "File \"" + selectedFile + "\"could not be deleted"
+                    );
                 }
             }
         });
     }
 
     public void createNewFile() {
-
         String fileName = Alerts.askNewFileName();
         if (fileName == null) {
             return;
@@ -151,9 +215,12 @@ public class AppController {
             view.getTextArea().clear();
             clearSearch();
             sortMoveSelect(fileName);
-
         } catch (FileAlreadyExistsException e) {
-            Alerts.showErrorAlert("\"" + fileName + "\" already exists. Please choose a different name.");
+            Alerts.showErrorAlert(
+                "\"" +
+                fileName +
+                "\" already exists. Please choose a different name."
+            );
         } catch (Exception e) {
             Alerts.showErrorAlert("Something went wrong...");
             e.printStackTrace();
@@ -167,7 +234,9 @@ public class AppController {
                 model.save(selectedFile, view.getTextArea().getText());
                 hasUnsavedChanges = false;
             } catch (Exception e) {
-                Alerts.showErrorAlert("File \"" + selectedFile + "\"could not be saved");
+                Alerts.showErrorAlert(
+                    "File \"" + selectedFile + "\"could not be saved"
+                );
             }
         }
     }
@@ -180,6 +249,13 @@ public class AppController {
         try {
             String fileContent = model.load(file);
             view.getTextArea().setText(fileContent);
+
+            view.getTagListView().getItems().clear();
+            tags
+                .getOrDefault(file, new HashSet<String>())
+                .stream()
+                .sorted()
+                .forEach(tag -> view.getTagListView().getItems().add(tag));
             hasUnsavedChanges = false;
         } catch (Exception e) {
             Alerts.showErrorAlert("file could not be read");
@@ -187,7 +263,9 @@ public class AppController {
     }
 
     private void sortMoveSelect(String fileName) {
-        FXCollections.sort(model.getFileList(), (a, b) -> a.compareToIgnoreCase(b));
+        FXCollections.sort(model.getFileList(), (a, b) ->
+            a.compareToIgnoreCase(b)
+        );
         view.getListView().getSelectionModel().select(fileName);
         view.getListView().scrollTo(fileName);
     }
@@ -196,5 +274,4 @@ public class AppController {
         view.getSearchField().setText("");
         searchFiles();
     }
-
 }
