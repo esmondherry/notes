@@ -12,6 +12,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class AppView {
+
     private VBox pane;
     private ListView<String> listView;
     private TextField searchField;
@@ -27,9 +28,9 @@ public class AppView {
     private Button addTagButton;
     private HBox addTagBox;
     private Button removeTag;
+    private Button tagfilters;
 
     public AppView() {
-
         VBox textPane = createTextPane();
 
         VBox filesPane = createFilesPane();
@@ -109,13 +110,19 @@ public class AppView {
         return removeTag;
     }
 
+    public Button getFilterTagButton() {
+        return tagfilters;
+    }
+
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
         newButton = new Button("New");
         saveButton = new Button("Save");
         deleteButton = new Button("Delete");
         settingsButton = new Button("Settings");
-        toolbar.getItems().addAll(newButton, saveButton, deleteButton, settingsButton);
+        toolbar
+            .getItems()
+            .addAll(newButton, saveButton, deleteButton, settingsButton);
         return toolbar;
     }
 
@@ -125,7 +132,7 @@ public class AppView {
         searchField.setPromptText("Search...");
 
         HBox.setHgrow(searchField, Priority.ALWAYS);
-        Button tagfilters = new Button("V");
+        tagfilters = new Button("V");
 
         HBox searchBox = new HBox(searchField, tagfilters);
         VBox.setVgrow(listView, Priority.ALWAYS);

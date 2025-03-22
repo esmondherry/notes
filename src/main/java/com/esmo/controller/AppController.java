@@ -5,8 +5,10 @@ import com.esmo.model.Storage;
 import com.esmo.view.AppView;
 import com.esmo.view.SettingsView;
 import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javafx.collections.FXCollections;
@@ -21,6 +23,7 @@ public class AppController {
     private boolean hasUnsavedChanges = false;
 
     private Map<String, Set<String>> tags = new HashMap<>();
+    private List<String> enabledTagInFilter = new ArrayList<>();
 
     public AppController(AppView view, Storage model) {
         this.view = view;
@@ -81,21 +84,32 @@ public class AppController {
             });
 
         view.getRemoveTag().setOnAction(e -> removeTag());
+        view
+            .getFilterTagButton()
+            .setOnAction(e -> {
+                var results = Alerts.setFilter(
+                    new ArrayList<>(listTags()),
+                    enabledTagInFilter
+                );
+                enabledTagInFilter.clear();
+                enabledTagInFilter.addAll(results);
+                searchFiles();
+            });
     }
 
     private void removeTag() {
-        view
-            .getTagListView()
-            .getItems()
-            .remove(
-                view.getTagListView().getSelectionModel().getSelectedItem()
-            );
+        var tag = view.getTagListView().getSelectionModel().getSelectedItem();
+        view.getTagListView().getItems().remove(tag);
+        tags.get(getSelectedFile()).remove(tag);
     }
 
     private void addTag() {
         var currentTags = view.getTagListView().getItems();
         var newTag = view.getAddTagField().getText().strip();
         if (newTag.isEmpty()) {
+            return;
+        }
+        if (getSelectedFile() == null) {
             return;
         }
         if (!currentTags.contains(newTag)) {
@@ -147,7 +161,7 @@ public class AppController {
     public void searchFiles() {
         String searchPhrase = view.getSearchField().getText().strip();
 
-        if (searchPhrase.isEmpty()) {
+        if (searchPhrase.isEmpty() && enabledTagInFilter.isEmpty()) {
             view.getListView().setItems(model.getFileList());
             return;
         }
@@ -155,11 +169,32 @@ public class AppController {
             .getFileList()
             .filtered(fileName ->
                 fileName.toLowerCase().contains(searchPhrase.toLowerCase())
-            );
+            )
+            .filtered(this::containsAnyTag);
         view.getListView().setItems(filteredList);
         if (filteredList.size() == 1) {
             view.getListView().getSelectionModel().select(0);
         }
+    }
+
+    private boolean containsAnyTag(String note) {
+        var noteTags = tags.getOrDefault(note, new HashSet<>());
+        for (var tag : noteTags) {
+            if (enabledTagInFilter.contains(tag)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsAllTag(String note) {
+        var noteTags = tags.getOrDefault(note, new HashSet<>());
+        for (var tag : noteTags) {
+            if (!enabledTagInFilter.contains(tag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void changeFileName() {
@@ -273,5 +308,13 @@ public class AppController {
     private void clearSearch() {
         view.getSearchField().setText("");
         searchFiles();
+    }
+
+    private Set<String> listTags() {
+        Set<String> set = new HashSet<>();
+        for (var tag : tags.values()) {
+            set.addAll(tag);
+        }
+        return set;
     }
 }
