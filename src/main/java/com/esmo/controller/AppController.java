@@ -1,6 +1,7 @@
 package com.esmo.controller;
 
 import com.esmo.Alerts;
+import com.esmo.model.FileModel;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
 import com.esmo.view.SettingsView;
@@ -28,6 +29,7 @@ public class AppController {
     public AppController(AppView view, Storage model) {
         this.view = view;
         this.model = model;
+        this.tags = ((FileModel) model).getTags();
         actionHandlers();
     }
 
@@ -101,6 +103,7 @@ public class AppController {
         var tag = view.getTagListView().getSelectionModel().getSelectedItem();
         view.getTagListView().getItems().remove(tag);
         tags.get(getSelectedFile()).remove(tag);
+        ((FileModel) model).saveTags(tags);
     }
 
     private void addTag() {
@@ -120,6 +123,7 @@ public class AppController {
                 tags.put(getSelectedFile(), new HashSet<>());
             }
             tags.get(getSelectedFile()).add(newTag);
+            ((FileModel) model).saveTags(tags);
         } else {
             Alerts.showErrorAlert("Tag already exists");
         }

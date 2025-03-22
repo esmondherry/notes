@@ -1,19 +1,25 @@
 package com.esmo.model;
 
+import com.esmo.Alerts;
+import com.esmo.InfoCenter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
-import com.esmo.Alerts;
-import com.esmo.InfoCenter;
-
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.json.JSONObject;
 
 public class FileModel implements Storage {
+
     private Path folderPath;
     private ObservableList<String> fileList;
 
@@ -21,9 +27,12 @@ public class FileModel implements Storage {
         this.folderPath = folderPath;
         fileList = FXCollections.observableArrayList();
         updateFileList();
-        InfoCenter.getInfoCenter().addListener(e -> {
-            setFolderPath(Path.of(InfoCenter.getInfoCenter().getFolderPath()));
-        });
+        InfoCenter.getInfoCenter()
+            .addListener(e -> {
+                setFolderPath(
+                    Path.of(InfoCenter.getInfoCenter().getFolderPath())
+                );
+            });
     }
 
     public void setFolderPath(Path folderPath) {
@@ -54,7 +63,10 @@ public class FileModel implements Storage {
 
     @Override
     public void rename(String deadName, String newName) throws IOException {
-        Files.move(folderPath.resolve(addTXT(deadName)), folderPath.resolve(addTXT(newName)));
+        Files.move(
+            folderPath.resolve(addTXT(deadName)),
+            folderPath.resolve(addTXT(newName))
+        );
         fileList.remove(deadName);
         fileList.add(newName);
     }
@@ -77,16 +89,55 @@ public class FileModel implements Storage {
         try {
             Files.newDirectoryStream(folderPath, "*.txt").forEach(e -> {
                 String file = e.getFileName().toString();
-                files.add(file.substring(0, file.length()-4));
+                files.add(file.substring(0, file.length() - 4));
             });
         } catch (NotDirectoryException e) {
-            Alerts.showErrorAlert("The currently selected path is not a directory");
+            Alerts.showErrorAlert(
+                "The currently selected path is not a directory"
+            );
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
         fileList.setAll(files);
+    }
+
+    public void saveTags(Map<String, Set<String>> tags) {
+        JSONObject jsonObject = new JSONObject(tags);
+        try {
+            Files.writeString(
+                folderPath.resolve("tags.json"),
+                jsonObject.toString()
+            );
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Set<String>> getTags() {
+        try {
+            var string = Files.readString(folderPath.resolve("tags.json"));
+            JSONObject jsonObject = new JSONObject(string);
+
+            Map<String, Set<String>> allTags = new HashMap<>();
+            for (var key : jsonObject.keySet()) {
+                var tags = jsonObject
+                    .getJSONArray(key)
+                    .toList()
+                    .stream()
+                    .map(tag -> (String) tag)
+                    .collect(Collectors.toSet());
+
+                allTags.put(key, tags);
+            }
+            return allTags;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return new HashMap<>();
     }
 
     private static String addTXT(String name) {
