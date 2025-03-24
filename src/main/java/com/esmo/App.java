@@ -1,12 +1,12 @@
 package com.esmo;
 
-import java.io.File;
-import java.nio.file.Path;
 import com.esmo.controller.AppController;
-import com.esmo.model.FileModel;
+import com.esmo.model.FileStorage;
 import com.esmo.model.Storage;
 import com.esmo.view.AppView;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -26,8 +26,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class App extends Application {
-    final private int WINDOW_WIDTH = 600;
-    final private int WINDOW_HEIGHT = 300;
+
+    private final int WINDOW_WIDTH = 600;
+    private final int WINDOW_HEIGHT = 300;
 
     private Storage model;
     private AppController controller;
@@ -47,7 +48,11 @@ public class App extends Application {
         AppView view = new AppView();
         // String dbLocation = infoCenter.getFolder().concat(File.separator).concat("notes.db");
         // model = new DatabaseModel("jdbc:sqlite:" + dbLocation);
-        model = new FileModel(Path.of(infoCenter.getFolderPath()));
+        try {
+            model = new FileStorage(Path.of(infoCenter.getFolderPath()));
+        } catch (IOException e) {
+            Alerts.showErrorAlert("Could not read notes");
+        }
         controller = new AppController(view, model);
 
         Scene scene = buildScene(view.getPane());
@@ -57,23 +62,32 @@ public class App extends Application {
         primaryStage.setAlwaysOnTop(infoCenter.isOnTop());
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> {
-            if (controller.hasUnsavedChanges() &&
-                    view.getListView().getSelectionModel().getSelectedItem() != null) {
-                Alerts.askSave(view.getNameField().getText()).ifPresent(response -> {
-                    if (response != ButtonType.OK) {
-                        e.consume();
+            if (
+                controller.hasUnsavedChanges() &&
+                view.getListView().getSelectionModel().getSelectedItem() != null
+            ) {
+                Alerts.askSave(view.getNameField().getText()).ifPresent(
+                    response -> {
+                        if (response != ButtonType.OK) {
+                            e.consume();
+                        }
                     }
-                });
+                );
             }
             infoCenter.save();
         });
-
     }
 
     private Scene buildScene(Pane pane) {
         Scene scene = new Scene(pane, WINDOW_WIDTH, WINDOW_HEIGHT);
-        KeyCombination controlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
-        KeyCombination controlN = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+        KeyCombination controlS = new KeyCodeCombination(
+            KeyCode.S,
+            KeyCombination.CONTROL_DOWN
+        );
+        KeyCombination controlN = new KeyCodeCombination(
+            KeyCode.N,
+            KeyCombination.CONTROL_DOWN
+        );
         scene.setOnKeyPressed(keyPressed -> {
             if (controlS.match(keyPressed)) {
                 System.out.println("shortcut \"Save\" used");
@@ -87,7 +101,6 @@ public class App extends Application {
     }
 
     private String initFolderPath() {
-
         TextField textField = new TextField();
         textField.setPrefWidth(200);
 
@@ -96,8 +109,9 @@ public class App extends Application {
 
         VBox vbox = new VBox(10);
         vbox.setPadding(new Insets(10));
-        vbox.getChildren().addAll(new Label("Folder Path:"), new HBox(textField,
-                button));
+        vbox
+            .getChildren()
+            .addAll(new Label("Folder Path:"), new HBox(textField, button));
 
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Folder Not Found");

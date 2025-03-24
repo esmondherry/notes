@@ -1,19 +1,13 @@
 package com.esmo.model;
 
-import javafx.collections.ObservableList;
+import java.io.IOException;
+import java.util.List;
 
 public interface Storage {
-
-    ObservableList<String> getFileList();
-
-    void delete(String fileName) throws Exception;
-
-    void add(String fileName) throws Exception;
-
-    void rename(String deadName, String newName) throws Exception;
-
-    void save(String fileName, String content) throws Exception;
-
-    String load(String fileName) throws Exception;
-
+    List<String> getNoteNames() throws IOException;
+    void delete(String name) throws IOException;
+    void rename(String deadName, String newName) throws IOException;
+    void save(Note note) throws IOException;
+    Note get(String name) throws IOException;
+    List<String> getTags() throws IOException;
 }
